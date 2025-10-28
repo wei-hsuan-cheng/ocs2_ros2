@@ -36,7 +36,12 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <pinocchio/multibody/geometry.hpp>
 #include <pinocchio/multibody/model.hpp>
 #include <pinocchio/parsers/urdf.hpp>
-#include <pinocchio/collision/distance.hpp>
+
+#if defined(__has_include)
+#    if __has_include(<pinocchio/collision/distance.hpp>)
+#        include <pinocchio/collision/distance.hpp>
+#    endif
+#endif
 
 #ifdef URDFDOM_VERSION_GT_4
 #include <tinyxml2.h>
