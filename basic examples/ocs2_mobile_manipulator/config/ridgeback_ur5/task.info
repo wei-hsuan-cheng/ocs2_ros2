@@ -9,7 +9,7 @@ model_information {
   ; base frame of the robot (from URDF)
   baseFrame                       "base_link"
   ; end-effector frame of the robot (from URDF)
-  eeFrame                         "ur_arm_tool0"
+  eeFrame                         "ur_arm_tool0" // ur_arm_tool0; ur_arm_flange
 }
 
 model_settings
@@ -26,15 +26,15 @@ ddp
   nThreads                        3
   threadPriority                  50
 
-  maxNumIterations                1
+  maxNumIterations                1 // 1; 10
   minRelCost                      0.1
   constraintTolerance             1e-3
 
-  displayInfo                     false
-  displayShortSummary             false
-  checkNumericalStability         false
-  debugPrintRollout               false
-  debugCaching                    false
+  displayInfo                     false // false; true
+  displayShortSummary             true // false; true
+  checkNumericalStability         false // false; true
+  debugPrintRollout               false // false; true
+  debugCaching                    flase // false; true
 
   AbsTolODE                       1e-5
   RelTolODE                       1e-3
@@ -201,7 +201,16 @@ finalEndEffector
 selfCollision
 { 
   ; activate self-collision constraint
-  activate  false
+  activate  true // false; true
+
+  ; Self Collision raw object pairs
+  collisionObjectPairs
+  {
+    [0] "5, 8"
+    [1] "5, 9"
+    [2] "5, 10"
+    [2] "5, 11"
+  }
 
   ; TODO: Replace the collision meshes of the arm with primitive shapes.
 }

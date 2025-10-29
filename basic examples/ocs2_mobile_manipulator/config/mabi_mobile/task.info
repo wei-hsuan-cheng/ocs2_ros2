@@ -31,7 +31,7 @@ ddp
   constraintTolerance             1e-3
 
   displayInfo                     false
-  displayShortSummary             false
+  displayShortSummary             true
   checkNumericalStability         false
   debugPrintRollout               false
   debugCaching                    false
@@ -209,6 +209,7 @@ selfCollision
     [0] "1, 4"
     [1] "1, 6"
     [2] "1, 9"
+    [3] "4, 7"
   }
 
   ; Self Collision pairs
