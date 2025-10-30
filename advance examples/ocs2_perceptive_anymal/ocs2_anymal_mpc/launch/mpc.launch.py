@@ -1,4 +1,5 @@
 import os
+import shutil
 
 from launch import LaunchDescription
 from launch.actions import IncludeLaunchDescription, DeclareLaunchArgument
@@ -15,14 +16,26 @@ def is_wsl():
     except FileNotFoundError:
         return False
 
-def generate_launch_description():
-    
-    prefix = "gnome-terminal --"
-    if is_wsl():
-        prefix = "xterm -e"
+def _select_terminal_prefix():
+    if shutil.which("terminator"):
+        print("Terminator is installed, use terminator as terminal")
+        return "terminator --new-tab -x"
+    if is_wsl() and shutil.which("xterm"):
         print("Current system is WSL, use xterm as terminal")
-    else:
-        print("Current system is not WSL, use gnome-terminal as terminal")
+        return "xterm -e"
+    if shutil.which("gnome-terminal"):
+        print("Using gnome-terminal as terminal")
+        return "gnome-terminal --"
+    if shutil.which("xterm"):
+        print("Using xterm as terminal")
+        return "xterm -e"
+    print("No supported GUI terminal detected, running nodes in current shell")
+    return ""
+
+
+def generate_launch_description():
+
+    prefix = _select_terminal_prefix()
         
     return LaunchDescription([
         DeclareLaunchArgument(
@@ -66,7 +79,8 @@ def generate_launch_description():
             executable='ocs2_anymal_mpc_mpc_node',
             name='ocs2_anymal_mpc_mpc_node',
             arguments=[LaunchConfiguration('description_name'), LaunchConfiguration('config_name')],
-            output='screen'
+            output='screen',
+            prefix=prefix if prefix else ''
         ),
         Node(
             package='ocs2_anymal_mpc',
