@@ -10,6 +10,8 @@ model_information {
     [3] "j2n7s300_joint_finger_tip_2"
     [4] "j2n7s300_joint_finger_3"
     [5] "j2n7s300_joint_finger_tip_3"
+    // [6] "j2n7s300_joint_1"
+    // [7] "j2n7s300_joint_3"
   }
 
   ; base frame of the robot (from URDF)

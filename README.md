@@ -181,6 +181,7 @@ https://github.com/user-attachments/assets/c71f6123-fa3a-4b72-a60f-5509b8c25413
 ```bash
 source ~/ros2_ws/install/setup.bash
 ros2 launch ocs2_mobile_manipulator_ros manipulator_kinova_j2n6.launch.py
+ros2 launch ocs2_mobile_manipulator_ros manipulator_kinova_j2n7.launch.py
 ```
 * run Franka Panda
 ```bash
