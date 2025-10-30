@@ -20,7 +20,8 @@ def generate_launch_description():
         ),
         DeclareLaunchArgument(
             name='terrain_name',
-            default_value='step.png'
+            default_value='side_gap.png' # hurdles; side_gap; stepping_stones
+            # see /advance examples/ocs2_perceptive_anymal/ocs2_anymal_loopshaping_mpc/data
         ),
         DeclareLaunchArgument(
             name='terrain_scale',
@@ -28,7 +29,7 @@ def generate_launch_description():
         ),
         DeclareLaunchArgument(
             name='forward_distance',
-            default_value='3.0'
+            default_value='3.0' # 3.0, 6.0
         ),
         DeclareLaunchArgument(
             name='perception_parameter_file',
