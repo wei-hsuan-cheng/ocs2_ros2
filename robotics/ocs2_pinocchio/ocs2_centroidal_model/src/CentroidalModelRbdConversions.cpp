@@ -191,7 +191,7 @@ namespace ocs2
         for (size_t i = 0; i < info.numThreeDofContacts; i++)
         {
             const auto frameIndex = info.endEffectorFrameIndices[i];
-            const auto jointIndex = model.frames[frameIndex].parentJoint;
+            const auto jointIndex = model.frames[frameIndex].parent;
             const Vector3 translationJointFrameToContactFrame = model.frames[frameIndex].placement.translation();
             const Matrix3 rotationWorldFrameToJointFrame = data.oMi[jointIndex].rotation().transpose();
             const Vector3 contactForce = rotationWorldFrameToJointFrame * centroidal_model::getContactForces(
@@ -202,7 +202,7 @@ namespace ocs2
         for (size_t i = info.numThreeDofContacts; i < info.numThreeDofContacts + info.numSixDofContacts; i++)
         {
             const auto frameIndex = info.endEffectorFrameIndices[i];
-            const auto jointIndex = model.frames[frameIndex].parentJoint;
+            const auto jointIndex = model.frames[frameIndex].parent;
             const Vector3 translationJointFrameToContactFrame = model.frames[frameIndex].placement.translation();
             const Matrix3 rotationWorldFrameToJointFrame = data.oMi[jointIndex].rotation().transpose();
             const Vector3 contactForce = rotationWorldFrameToJointFrame * centroidal_model::getContactForces(

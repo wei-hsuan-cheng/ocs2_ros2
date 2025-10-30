@@ -20,12 +20,18 @@ def generate_launch_description():
     if shutil.which("terminator"):
         prefix = "terminator --new-tab -x"
         print("Terminator is installed, use terminator as terminal")
-    elif is_wsl():
+    elif is_wsl() and shutil.which("xterm"):
         prefix = "xterm -e"
         print("Current system is WSL, use xterm as terminal")
-    else:
+    elif shutil.which("gnome-terminal"):
         prefix = "gnome-terminal --"
-        print("Current system is not WSL, use gnome-terminal as terminal")
+        print("Using gnome-terminal as terminal")
+    elif shutil.which("xterm"):
+        prefix = "xterm -e"
+        print("Using xterm as terminal")
+    else:
+        prefix = ""
+        print("No supported GUI terminal detected, running nodes in current shell")
 
 
     return LaunchDescription([
