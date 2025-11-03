@@ -21,10 +21,11 @@ model_settings
 ; DDP settings
 ddp
 {
-  algorithm                       SLQ
+  algorithm                       SLQ // SLQ, ILQR
 
   nThreads                        3
   threadPriority                  50
+adPriority                  50
 
   maxNumIterations                1 // 1; 10
   minRelCost                      0.1
