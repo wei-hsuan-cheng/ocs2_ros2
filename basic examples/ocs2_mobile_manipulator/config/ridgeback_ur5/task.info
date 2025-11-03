@@ -1,6 +1,6 @@
 ; robot model meta-information
 model_information {
-  manipulatorModelType     0      // 0: Default-arm, 1: Wheel-based manipulator, 2: Floating-arm manipulator, 3: Fully actuated floating-arm manipulator
+  manipulatorModelType     1      // 0: Default-arm, 1: Wheel-based manipulator, 2: Floating-arm manipulator, 3: Fully actuated floating-arm manipulator
   
   ; motion joints in the URDF to consider fixed
   removeJoints {
@@ -73,14 +73,14 @@ rollout
 ; MPC settings
 mpc
 {
-  timeHorizon                     1.0   ; [s] // 1.0
-  solutionTimeWindow              0.2   ; [s]
+  timeHorizon                     1.0   ; [s] // 1.0, 2.0
+  solutionTimeWindow              0.2   ; [s] // 0.2, 0.4
   coldStart                       false
   
   debugPrint                      false
 
-  mpcDesiredFrequency             100   ; [Hz]
-  mrtDesiredFrequency             400   ; [Hz]
+  mpcDesiredFrequency             50   ; [Hz]
+  mrtDesiredFrequency             250   ; [Hz]
 }
 
 ; initial state
@@ -188,14 +188,14 @@ inputCost
 endEffector
 {
   ; end effector quadratic penalty scaling
-  muPosition       50.0 // 10.0, 50.0
-  muOrientation     5.0 // 5.0
+  muPosition       10.0 // 10.0, 50.0, 5.0
+  muOrientation     5.0 // 5.0, 25.0, 2.5
 }
 
 finalEndEffector
 {
-  muPosition      50.0 // 10.0, 50.0
-  muOrientation    5.0 // 5.0
+  muPosition       10.0 // 10.0, 50.0, 5.0
+  muOrientation     5.0 // 5.0, 25.0, 2.5
 }
 
 selfCollision
@@ -213,6 +213,15 @@ selfCollision
     //[4] "5, 12"
   }
 
+  ; minimum distance allowed between the pairs
+  minimumDistance  0.1
+
+  ; relaxed log barrier mu
+  mu     1e-2
+
+  ; relaxed log barrier delta
+  delta  1e-3
+  
   ; TODO: Replace the collision meshes of the arm with primitive shapes.
 }
 
