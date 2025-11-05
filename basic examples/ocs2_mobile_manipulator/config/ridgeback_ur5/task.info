@@ -14,7 +14,7 @@ model_information {
 
 model_settings
 {
-  usePreComputation               true
+  usePreComputation               true // true; false
   recompileLibraries              true
 }
 
@@ -188,13 +188,13 @@ inputCost
 endEffector
 {
   ; end effector quadratic penalty scaling
-  muPosition       20.0 // 10.0, 50.0, 5.0
+  muPosition       10.0 // 10.0, 50.0, 5.0
   muOrientation    05.0 // 5.0, 25.0, 2.5
 }
 
 finalEndEffector
 {
-  muPosition       20.0 // 10.0, 50.0, 5.0
+  muPosition       10.0 // 10.0, 50.0, 5.0
   muOrientation    05.0 // 5.0, 25.0, 2.5
 }
 
