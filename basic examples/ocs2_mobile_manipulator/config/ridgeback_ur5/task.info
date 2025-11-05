@@ -25,7 +25,6 @@ ddp
 
   nThreads                        3
   threadPriority                  50
-adPriority                  50
 
   maxNumIterations                1 // 1; 10
   minRelCost                      0.1
@@ -189,14 +188,14 @@ inputCost
 endEffector
 {
   ; end effector quadratic penalty scaling
-  muPosition       10.0 // 10.0, 50.0, 5.0
-  muOrientation     5.0 // 5.0, 25.0, 2.5
+  muPosition       20.0 // 10.0, 50.0, 5.0
+  muOrientation    05.0 // 5.0, 25.0, 2.5
 }
 
 finalEndEffector
 {
-  muPosition       10.0 // 10.0, 50.0, 5.0
-  muOrientation     5.0 // 5.0, 25.0, 2.5
+  muPosition       20.0 // 10.0, 50.0, 5.0
+  muOrientation    05.0 // 5.0, 25.0, 2.5
 }
 
 selfCollision
