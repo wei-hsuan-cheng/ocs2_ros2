@@ -12,6 +12,8 @@ set(dependencies
         robot_state_publisher
         ocs2_self_collision_visualization
         ocs2_mobile_manipulator
+        ocs2_msgs
+        std_srvs
 )
 
 find_package(ament_cmake REQUIRED)
@@ -21,6 +23,8 @@ find_package(kdl_parser REQUIRED)
 find_package(robot_state_publisher REQUIRED)
 find_package(ocs2_self_collision_visualization REQUIRED)
 find_package(ocs2_mobile_manipulator REQUIRED)
+find_package(ocs2_msgs REQUIRED)
+find_package(std_srvs REQUIRED)
 
 ###########
 ## Build ##

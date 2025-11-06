@@ -35,6 +35,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <ocs2_core/misc/LoadData.h>
 #include <ocs2_mobile_manipulator/ManipulatorModelInfo.h>
 #include <ocs2_mobile_manipulator/MobileManipulatorInterface.h>
+#include <ocs2_ros_interfaces/common/RosMsgConversions.h>
+#include <ocs2_msgs/msg/mpc_observation.hpp>
+#include <std_srvs/srv/set_bool.hpp>
 #include <pinocchio/algorithm/kinematics.hpp>
 #include <pinocchio/algorithm/frames.hpp>
 
@@ -214,6 +217,31 @@ int main(int argc, char* argv[])
     std::unique_ptr<JoystickMarkerWrapper> joystickControl;
     std::unique_ptr<MarkerAutoPositionWrapper> autoPositionWrapper;
 
+    // Prepare optional FK interface (for initializing and service hold)
+    std::unique_ptr<MobileManipulatorInterface> interfacePtr;
+    if (!urdfFile.empty() && !libFolder.empty())
+    {
+        try
+        {
+            interfacePtr = std::make_unique<MobileManipulatorInterface>(taskFile, libFolder, urdfFile);
+        }
+        catch (const std::exception& e)
+        {
+            RCLCPP_WARN(node->get_logger(), "Failed to create MobileManipulatorInterface: %s", e.what());
+        }
+    }
+
+    // Subscribe to latest observation for service-based hold
+    SystemObservation latestObs;
+    bool haveObs = false;
+    auto obsSub = node->create_subscription<ocs2_msgs::msg::MpcObservation>(
+        robotName + std::string("_mpc_observation"), 1,
+        [&](const ocs2_msgs::msg::MpcObservation::SharedPtr msg)
+        {
+            latestObs = ros_msg_conversions::readObservationMsg(*msg);
+            haveObs = true;
+        });
+
     if (dualArmMode)
     {
         // Create dual arm interactive marker
@@ -222,19 +250,18 @@ int main(int argc, char* argv[])
                                                                      &dualArmGoalPoseToTargetTrajectories, 10.0, markerFrame);
 
         // Initialize markers to current EE poses (FK of initial state)
-        if (!urdfFile.empty() && !libFolder.empty())
+        if (interfacePtr)
         {
             try
             {
-                MobileManipulatorInterface interface(taskFile, libFolder, urdfFile);
-                const auto& pin = interface.getPinocchioInterface();
+                const auto& pin = interfacePtr->getPinocchioInterface();
                 const auto& model = pin.getModel();
                 auto data = pin.getData();
-                const auto q0 = interface.getInitialState();
+                const auto q0 = interfacePtr->getInitialState();
                 pinocchio::forwardKinematics(model, data, q0);
                 pinocchio::updateFramePlacements(model, data);
 
-                const auto& info = interface.getManipulatorModelInfo();
+                const auto& info = interfacePtr->getManipulatorModelInfo();
                 // Left EE
                 const auto left_id = model.getFrameId(info.eeFrame);
                 const auto& left = data.oMf[left_id];
@@ -256,6 +283,76 @@ int main(int argc, char* argv[])
                 RCLCPP_WARN(node->get_logger(), "FK init for markers failed: %s", e.what());
             }
         }
+
+        // Service to start/stop tracking. True=start (continuous), False=stop and hold current pose
+        auto srv = node->create_service<std_srvs::srv::SetBool>(
+            "toggle_mpc",
+            [&](const std::shared_ptr<rmw_request_id_t> /*req_header*/, const std::shared_ptr<std_srvs::srv::SetBool::Request> req,
+                std::shared_ptr<std_srvs::srv::SetBool::Response> res)
+            {
+                if (!req->data)
+                {
+                    // Stop: hold at current EE poses
+                    try
+                    {
+                        Eigen::Vector3d lp, rp;
+                        Eigen::Quaterniond lq, rq;
+                        if (interfacePtr && haveObs)
+                        {
+                            const auto& pin = interfacePtr->getPinocchioInterface();
+                            const auto& model = pin.getModel();
+                            auto data = pin.getData();
+                            pinocchio::forwardKinematics(model, data, latestObs.state);
+                            pinocchio::updateFramePlacements(model, data);
+                            const auto& info = interfacePtr->getManipulatorModelInfo();
+                            // Left
+                            const auto left_id = model.getFrameId(info.eeFrame);
+                            const auto& left = data.oMf[left_id];
+                            lp = left.translation();
+                            lq = Eigen::Quaterniond(left.rotation());
+                            // Right
+                            const auto right_id = model.getFrameId(info.eeFrame1);
+                            const auto& right = data.oMf[right_id];
+                            rp = right.translation();
+                            rq = Eigen::Quaterniond(right.rotation());
+                        }
+                        else
+                        {
+                            // Fallback to current marker poses
+                            std::tie(lp, lq) = targetPoseCommand.getDualArmPose(ocs2::IMarkerControl::ArmType::LEFT);
+                            std::tie(rp, rq) = targetPoseCommand.getDualArmPose(ocs2::IMarkerControl::ArmType::RIGHT);
+                        }
+
+                        // Update markers and publish once (manual mode)
+                        if (targetPoseCommand.isContinuousMode())
+                        {
+                            targetPoseCommand.togglePublishMode();
+                        }
+                        targetPoseCommand.setDualArmPose(ocs2::IMarkerControl::ArmType::LEFT, lp, lq);
+                        targetPoseCommand.updateMarkerDisplay("LeftArmGoal", lp, lq);
+                        targetPoseCommand.setDualArmPose(ocs2::IMarkerControl::ArmType::RIGHT, rp, rq);
+                        targetPoseCommand.updateMarkerDisplay("RightArmGoal", rp, rq);
+                        targetPoseCommand.sendDualArmTrajectories();
+                        res->success = true;
+                        res->message = "MPC paused; holding current pose";
+                    }
+                    catch (const std::exception& e)
+                    {
+                        res->success = false;
+                        res->message = std::string("Hold failed: ") + e.what();
+                    }
+                }
+                else
+                {
+                    // Start: switch to continuous mode
+                    if (!targetPoseCommand.isContinuousMode())
+                    {
+                        targetPoseCommand.togglePublishMode();
+                    }
+                    res->success = true;
+                    res->message = "MPC started (continuous mode)";
+                }
+            });
 
         if (enableJoystick)
         {
@@ -281,19 +378,18 @@ int main(int argc, char* argv[])
     UnifiedTargetTrajectoriesInteractiveMarker targetPoseCommand(node, robotName, &goalPoseToTargetTrajectories, 10.0, markerFrame);
 
     // Initialize marker to current EE pose (FK of initial state)
-    if (!urdfFile.empty() && !libFolder.empty())
+    if (interfacePtr)
     {
         try
         {
-            MobileManipulatorInterface interface(taskFile, libFolder, urdfFile);
-            const auto& pin = interface.getPinocchioInterface();
+            const auto& pin = interfacePtr->getPinocchioInterface();
             const auto& model = pin.getModel();
             auto data = pin.getData();
-            const auto q0 = interface.getInitialState();
+            const auto q0 = interfacePtr->getInitialState();
             pinocchio::forwardKinematics(model, data, q0);
             pinocchio::updateFramePlacements(model, data);
 
-            const auto& info = interface.getManipulatorModelInfo();
+            const auto& info = interfacePtr->getManipulatorModelInfo();
             const auto ee_id = model.getFrameId(info.eeFrame);
             const auto& ee = data.oMf[ee_id];
             Eigen::Vector3d p = ee.translation();
@@ -307,6 +403,63 @@ int main(int argc, char* argv[])
             RCLCPP_WARN(node->get_logger(), "FK init for marker failed: %s", e.what());
         }
     }
+
+    // Service to start/stop tracking for single arm
+    auto srv = node->create_service<std_srvs::srv::SetBool>(
+        "toggle_mpc",
+        [&](const std::shared_ptr<rmw_request_id_t> /*req_header*/, const std::shared_ptr<std_srvs::srv::SetBool::Request> req,
+            std::shared_ptr<std_srvs::srv::SetBool::Response> res)
+        {
+            if (!req->data)
+            {
+                try
+                {
+                    Eigen::Vector3d p;
+                    Eigen::Quaterniond q;
+                    if (interfacePtr && haveObs)
+                    {
+                        const auto& pin = interfacePtr->getPinocchioInterface();
+                        const auto& model = pin.getModel();
+                        auto data = pin.getData();
+                        pinocchio::forwardKinematics(model, data, latestObs.state);
+                        pinocchio::updateFramePlacements(model, data);
+                        const auto& info = interfacePtr->getManipulatorModelInfo();
+                        const auto ee_id = model.getFrameId(info.eeFrame);
+                        const auto& ee = data.oMf[ee_id];
+                        p = ee.translation();
+                        q = Eigen::Quaterniond(ee.rotation());
+                    }
+                    else
+                    {
+                        std::tie(p, q) = targetPoseCommand.getSingleArmPose();
+                    }
+
+                    if (targetPoseCommand.isContinuousMode())
+                    {
+                        targetPoseCommand.togglePublishMode();
+                    }
+                    targetPoseCommand.setSingleArmPose(p, q);
+                    targetPoseCommand.updateMarkerDisplay("Goal", p, q);
+                    targetPoseCommand.sendSingleArmTrajectories();
+                    res->success = true;
+                    res->message = "MPC paused; holding current pose";
+                }
+                catch (const std::exception& e)
+                {
+                    res->success = false;
+                    res->message = std::string("Hold failed: ") + e.what();
+                }
+            }
+            else
+            {
+                if (!targetPoseCommand.isContinuousMode())
+                {
+                    targetPoseCommand.togglePublishMode();
+                }
+                res->success = true;
+                res->message = "MPC started (continuous mode)";
+            }
+        });
 
     if (enableJoystick)
     {
