@@ -31,7 +31,7 @@ ddp
   constraintTolerance             1e-3
 
   displayInfo                     false // false; true
-  displayShortSummary             true // false; true
+  displayShortSummary             false // false; true
   checkNumericalStability         false // false; true
   debugPrintRollout               false // false; true
   debugCaching                    flase // false; true

@@ -21,7 +21,16 @@ def is_wsl():
 
 
 def detect_terminal_prefix():
-    """Select a terminal prefix if the corresponding binary is available."""
+    """Select a terminal prefix if a GUI terminal is available; otherwise none.
+
+    In headless/containers (no DISPLAY), return empty prefix so child nodes run
+    directly. This avoids xterm failures that prevent nodes from starting.
+    """
+    # Headless check
+    if not os.environ.get('DISPLAY'):
+        print("No DISPLAY found (headless). Launching nodes without an extra terminal.")
+        return ""
+
     if is_wsl():
         if shutil.which('xterm'):
             print("Current system is WSL, use xterm as terminal")
@@ -42,7 +51,9 @@ def detect_terminal_prefix():
 
 
 def generate_launch_description():
-    prefix = detect_terminal_prefix()
+    # For stability across headless/container runs, avoid wrapping nodes in a terminal
+    # prefix. This ensures critical nodes (e.g., dummy MRT) are not tied to a GUI shell.
+    prefix = ""
 
     return LaunchDescription([
         DeclareLaunchArgument(
