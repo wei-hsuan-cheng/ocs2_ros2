@@ -34,12 +34,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <boost/property_tree/info_parser.hpp>
 #include <ocs2_core/misc/LoadData.h>
 #include <ocs2_mobile_manipulator/ManipulatorModelInfo.h>
-#include <ocs2_mobile_manipulator/MobileManipulatorInterface.h>
-#include <pinocchio/algorithm/kinematics.hpp>
-#include <pinocchio/algorithm/frames.hpp>
 
 using namespace ocs2;
-using namespace ocs2::mobile_manipulator;
 
 /**
  * Read dualArmMode configuration from taskFile
@@ -162,11 +158,6 @@ int main(int argc, char* argv[])
         .automatically_declare_parameters_from_overrides(true));
 
     std::string taskFile = node->get_parameter("taskFile").as_string();
-    // Optional: urdfFile and libFolder for FK-based initialization
-    std::string urdfFile = "";
-    std::string libFolder = "";
-    try { urdfFile = node->get_parameter("urdfFile").as_string(); } catch (...) {}
-    try { libFolder = node->get_parameter("libFolder").as_string(); } catch (...) {}
     bool dualArmMode = readDualArmModeFromTaskFile(taskFile);
 
     bool enableDynamicFrame = false;
@@ -221,42 +212,6 @@ int main(int argc, char* argv[])
         UnifiedTargetTrajectoriesInteractiveMarker targetPoseCommand(node, robotName,
                                                                      &dualArmGoalPoseToTargetTrajectories, 10.0, markerFrame);
 
-        // Initialize markers to current EE poses (FK of initial state)
-        if (!urdfFile.empty() && !libFolder.empty())
-        {
-            try
-            {
-                MobileManipulatorInterface interface(taskFile, libFolder, urdfFile);
-                const auto& pin = interface.getPinocchioInterface();
-                const auto& model = pin.getModel();
-                auto data = pin.getData();
-                const auto q0 = interface.getInitialState();
-                pinocchio::forwardKinematics(model, data, q0);
-                pinocchio::updateFramePlacements(model, data);
-
-                const auto& info = interface.getManipulatorModelInfo();
-                // Left EE
-                const auto left_id = model.getFrameId(info.eeFrame);
-                const auto& left = data.oMf[left_id];
-                Eigen::Vector3d lp = left.translation();
-                Eigen::Quaterniond lq(left.rotation());
-                targetPoseCommand.setDualArmPose(ocs2::IMarkerControl::ArmType::LEFT, lp, lq);
-                targetPoseCommand.updateMarkerDisplay("LeftArmGoal", lp, lq);
-                // Right EE
-                const auto right_id = model.getFrameId(info.eeFrame1);
-                const auto& right = data.oMf[right_id];
-                Eigen::Vector3d rp = right.translation();
-                Eigen::Quaterniond rq(right.rotation());
-                targetPoseCommand.setDualArmPose(ocs2::IMarkerControl::ArmType::RIGHT, rp, rq);
-                targetPoseCommand.updateMarkerDisplay("RightArmGoal", rp, rq);
-                RCLCPP_INFO(node->get_logger(), "Initialized dual-arm markers from initial EE pose.");
-            }
-            catch (const std::exception& e)
-            {
-                RCLCPP_WARN(node->get_logger(), "FK init for markers failed: %s", e.what());
-            }
-        }
-
         if (enableJoystick)
         {
             RCLCPP_INFO(node->get_logger(), "Joystick marker wrapper enabled");
@@ -279,34 +234,6 @@ int main(int argc, char* argv[])
     // Single arm mode
     RCLCPP_INFO(node->get_logger(), "Single arm mode enabled");
     UnifiedTargetTrajectoriesInteractiveMarker targetPoseCommand(node, robotName, &goalPoseToTargetTrajectories, 10.0, markerFrame);
-
-    // Initialize marker to current EE pose (FK of initial state)
-    if (!urdfFile.empty() && !libFolder.empty())
-    {
-        try
-        {
-            MobileManipulatorInterface interface(taskFile, libFolder, urdfFile);
-            const auto& pin = interface.getPinocchioInterface();
-            const auto& model = pin.getModel();
-            auto data = pin.getData();
-            const auto q0 = interface.getInitialState();
-            pinocchio::forwardKinematics(model, data, q0);
-            pinocchio::updateFramePlacements(model, data);
-
-            const auto& info = interface.getManipulatorModelInfo();
-            const auto ee_id = model.getFrameId(info.eeFrame);
-            const auto& ee = data.oMf[ee_id];
-            Eigen::Vector3d p = ee.translation();
-            Eigen::Quaterniond q(ee.rotation());
-            targetPoseCommand.setSingleArmPose(p, q);
-            targetPoseCommand.updateMarkerDisplay("Goal", p, q);
-            RCLCPP_INFO(node->get_logger(), "Initialized marker from initial EE pose.");
-        }
-        catch (const std::exception& e)
-        {
-            RCLCPP_WARN(node->get_logger(), "FK init for marker failed: %s", e.what());
-        }
-    }
 
     if (enableJoystick)
     {

@@ -75,6 +75,7 @@ def generate_launch_description():
             default_value='false',
             description='Whether to enable automatic marker position updates'
         ),
+        
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(
                 os.path.join(get_package_share_directory(
@@ -85,25 +86,25 @@ def generate_launch_description():
                 'rviz': LaunchConfiguration('rviz')
             }.items()
         ),
-        Node(
-            package='ocs2_mobile_manipulator_ros',
-            executable='mobile_manipulator_mpc',
-            name='mobile_manipulator_mpc',
-            prefix=prefix,
-            condition=IfCondition(LaunchConfiguration("debug")),
-            output='screen',
-            parameters=[
-                {
-                    'taskFile': LaunchConfiguration('taskFile')
-                },
-                {
-                    'urdfFile': LaunchConfiguration('urdfFile')
-                },
-                {
-                    'libFolder': LaunchConfiguration('libFolder')
-                }
-            ]
-        ),
+        # Node(
+        #     package='ocs2_mobile_manipulator_ros',
+        #     executable='mobile_manipulator_mpc',
+        #     name='mobile_manipulator_mpc',
+        #     prefix=prefix,
+        #     condition=IfCondition(LaunchConfiguration("debug")),
+        #     output='screen',
+        #     parameters=[
+        #         {
+        #             'taskFile': LaunchConfiguration('taskFile')
+        #         },
+        #         {
+        #             'urdfFile': LaunchConfiguration('urdfFile')
+        #         },
+        #         {
+        #             'libFolder': LaunchConfiguration('libFolder')
+        #         }
+        #     ]
+        # ),
         Node(
             package='ocs2_mobile_manipulator_ros',
             executable='mobile_manipulator_mpc_node',
@@ -148,6 +149,12 @@ def generate_launch_description():
             parameters=[
                 {
                     'taskFile': LaunchConfiguration('taskFile')
+                },
+                {
+                    'urdfFile': LaunchConfiguration('urdfFile')
+                },
+                {
+                    'libFolder': LaunchConfiguration('libFolder')
                 },
                 {
                     'enableJoystick': LaunchConfiguration('enableJoystick')

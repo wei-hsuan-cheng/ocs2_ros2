@@ -35,10 +35,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "rclcpp/rclcpp.hpp"
 
-// Use pinocchio to compute current end-effector pose(s) from the initial state
-#include <pinocchio/algorithm/kinematics.hpp>
-#include <pinocchio/algorithm/frames.hpp>
-
 using namespace ocs2;
 using namespace mobile_manipulator;
 
@@ -84,45 +80,24 @@ int main(int argc, char** argv)
     initObservation.input.setZero(interface.getManipulatorModelInfo().inputDim);
     initObservation.time = 0.0;
 
-    // initial command: set to current end-effector pose(s) to avoid any motion
+    // initial command
     vector_t initTarget;
-
-    // Compute forward kinematics for the initial state
-    const auto& pinInterface = interface.getPinocchioInterface();
-    const auto& model = pinInterface.getModel();
-    auto data = pinInterface.getData();
-    pinocchio::forwardKinematics(model, data, initObservation.state);
-    pinocchio::updateFramePlacements(model, data);
-
-    const auto& info = interface.getManipulatorModelInfo();
-
     if (interface.dual_arm_)
     {
         initTarget.resize(14);
-
-        // Left arm end-effector pose
-        const auto left_id = model.getFrameId(info.eeFrame);
-        const auto& left = data.oMf[left_id];
-        Eigen::Quaterniond qL(left.rotation());
-        initTarget.segment<3>(0) = left.translation();
-        initTarget.segment<4>(3) = qL.coeffs(); // [qx, qy, qz, qw]
-
-        // Right arm end-effector pose
-        const auto right_id = model.getFrameId(info.eeFrame1);
-        const auto& right = data.oMf[right_id];
-        Eigen::Quaterniond qR(right.rotation());
-        initTarget.segment<3>(7)  = right.translation();
-        initTarget.segment<4>(10) = qR.coeffs(); // [qx, qy, qz, qw]
+        // First arm target: (0.0, 0.5, 1.0)
+        initTarget.head(3) << 0.0, 0.5, 1.0;
+        // Second arm target: (0.0, -0.5, 1.0)
+        initTarget.segment(3, 4) << Eigen::Quaternion<scalar_t>(1, 0, 0, 0).coeffs();
+        // Quaternion for both arms (identity quaternion)
+        initTarget.segment(7, 3) << 0.0, -0.5, 1.0;
+        initTarget.tail(4) << Eigen::Quaternion<scalar_t>(1, 0, 0, 0).coeffs();
     }
     else
     {
         initTarget.resize(7);
-
-        const auto ee_id = model.getFrameId(info.eeFrame);
-        const auto& ee = data.oMf[ee_id];
-        Eigen::Quaterniond q(ee.rotation());
-        initTarget.head<3>() = ee.translation();
-        initTarget.tail<4>() = q.coeffs(); // [qx, qy, qz, qw]
+        initTarget.head(3) << 1, 0, 1;
+        initTarget.tail(4) << Eigen::Quaternion<scalar_t>(1, 0, 0, 0).coeffs();
     }
     const vector_t zeroInput =
         vector_t::Zero(interface.getManipulatorModelInfo().inputDim);
