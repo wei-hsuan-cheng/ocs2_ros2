@@ -37,6 +37,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // Pause/Resume service
 #include <std_srvs/srv/set_bool.hpp>
 #include <atomic>
+#include <cmath>
 
 // Use pinocchio to compute current end-effector pose(s) from the initial state
 #include <pinocchio/algorithm/kinematics.hpp>
@@ -83,6 +84,8 @@ inline bool policyUpdatedForTime(ocs2::MRT_ROS_Interface& mrt,
   return std::abs(t0 - time) < (tolFactor / std::max(mpcDesiredFrequency, 1e-6));
 }
 
+// (Paused branch TODO left intentionally empty)
+
 // Synchronized dummy loop (publishes observation at MPC update boundaries)
 inline void synchronizedDummyLoop(ocs2::MRT_ROS_Interface& mrt,
                                   double mrtDesiredFrequency,
@@ -98,6 +101,7 @@ inline void synchronizedDummyLoop(ocs2::MRT_ROS_Interface& mrt,
 
   size_t loopCounter = 0;
   SystemObservation currentObservation = initObservation;
+  bool wasRunning = true;
 
   rclcpp::Rate simRate(mrtDesiredFrequency);
   while (rclcpp::ok()) {
@@ -141,6 +145,8 @@ inline void synchronizedDummyLoop(ocs2::MRT_ROS_Interface& mrt,
       // Optionally still update visualization at a low rate using the last state
     }
 
+    wasRunning = running.load();
+
     mrt.spinMRT();
     simRate.sleep();
   }
@@ -156,6 +162,7 @@ inline void realtimeDummyLoop(ocs2::MRT_ROS_Interface& mrt,
                               std::atomic<bool>& running,
                               std::atomic<bool>& resume_requested) {
   SystemObservation currentObservation = initObservation;
+  bool wasRunning = true;
 
   rclcpp::Rate simRate(mrtDesiredFrequency);
   while (rclcpp::ok()) {
@@ -193,6 +200,8 @@ inline void realtimeDummyLoop(ocs2::MRT_ROS_Interface& mrt,
       // Paused: do not interact with MRT/MPC; hold the observation constant
       // Optionally still update visualization at a low rate using the last state
     }
+
+    wasRunning = running.load();
 
     simRate.sleep();
   }
