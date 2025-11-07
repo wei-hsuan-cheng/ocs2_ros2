@@ -6,7 +6,6 @@ Panels:
       Expanded:
         - /Global Options1
         - /RobotModel1
-        - /TF1
         - /TF1/Frames1
         - /MarkerArray1
       Splitter Ratio: 0.5
@@ -285,7 +284,7 @@ Visualization Manager:
       Name: TF
       Show Arrows: true
       Show Axes: true
-      Show Names: true
+      Show Names: false
       Tree:
         world:
           base_link:
