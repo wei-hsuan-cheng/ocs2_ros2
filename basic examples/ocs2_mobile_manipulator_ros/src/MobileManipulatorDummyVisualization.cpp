@@ -72,6 +72,8 @@ namespace ocs2::mobile_manipulator
     }
 
 
+    /* Helpers */
+    // Init robot visualizer
     void MobileManipulatorDummyVisualization::launchVisualizerNode()
     {
         jointPublisher_ =
@@ -117,22 +119,8 @@ namespace ocs2::mobile_manipulator
     }
 
 
-    void MobileManipulatorDummyVisualization::update(
-        const SystemObservation& observation, const PrimalSolution& policy,
-        const CommandData& command)
-    {
-        const rclcpp::Time timeStamp = node_->get_clock()->now();
-
-        publishObservation(timeStamp, observation);
-        publishTargetTrajectories(timeStamp, command.mpcTargetTrajectories_);
-        publishOptimizedTrajectory(timeStamp, policy);
-        if (geometryVisualization_ != nullptr)
-        {
-            geometryVisualization_->publishDistances(observation.state);
-        }
-    }
-
-
+    // Helper:
+    // Broadcast world to base TF and robot joint states
     void MobileManipulatorDummyVisualization::publishObservation(
         const rclcpp::Time& timeStamp, const SystemObservation& observation)
     {
@@ -174,6 +162,9 @@ namespace ocs2::mobile_manipulator
     }
 
 
+    // Helper:
+    // Visualize MPC command as TF by publishing target end-effector pose w.r.t. world,
+    // extracted from targetTrajectories.stateTrajectory.
     void MobileManipulatorDummyVisualization::publishTargetTrajectories(
         const rclcpp::Time& timeStamp,
         const TargetTrajectories& targetTrajectories)
@@ -196,43 +187,24 @@ namespace ocs2::mobile_manipulator
     }
 
 
+    // Helper:
+    // Visualize the policy rollout as stateTrajectory marker and pose arrays
     void MobileManipulatorDummyVisualization::publishOptimizedTrajectory(
         const rclcpp::Time& timeStamp, const PrimalSolution& policy)
     {
         const scalar_t TRAJECTORYLINEWIDTH = 0.005;
-        const std::array<scalar_t, 3> red{0.6350, 0.0780, 0.1840};
-        const std::array<scalar_t, 3> blue{0, 0.4470, 0.7410};
+        const std::array<scalar_t, 3> baseTrajectoryColor{0.6350, 0.0780, 0.1840}; // red
+        const std::array<scalar_t, 3> eeTrajectoryColor{0, 0.4470, 0.7410}; // blue
         const auto& mpcStateTrajectory = policy.stateTrajectory_;
 
+        // Declare marker and pose arrays
         visualization_msgs::msg::MarkerArray markerArray;
+        geometry_msgs::msg::PoseArray poseArray;
+        poseArray.poses.reserve(mpcStateTrajectory.size());
 
         // Base trajectory
         std::vector<geometry_msgs::msg::Point> baseTrajectory;
         baseTrajectory.reserve(mpcStateTrajectory.size());
-        geometry_msgs::msg::PoseArray poseArray;
-        poseArray.poses.reserve(mpcStateTrajectory.size());
-
-        // End effector trajectory
-        const auto& model = pinocchioInterface_.getModel();
-        auto& data = pinocchioInterface_.getData();
-
-        std::vector<geometry_msgs::msg::Point> endEffectorTrajectory;
-        endEffectorTrajectory.reserve(mpcStateTrajectory.size());
-        std::for_each(mpcStateTrajectory.begin(), mpcStateTrajectory.end(),
-                      [&](const Eigen::VectorXd& state)
-                      {
-                          pinocchio::forwardKinematics(model, data, state);
-                          pinocchio::updateFramePlacements(model, data);
-                          const auto eeIndex = model.getBodyId(modelInfo_.eeFrame);
-                          const vector_t eePosition = data.oMf[eeIndex].translation();
-                          endEffectorTrajectory.push_back(
-                              ros_msg_helpers::getPointMsg(eePosition));
-                      });
-
-        markerArray.markers.emplace_back(ros_msg_helpers::getLineMsg(
-            std::move(endEffectorTrajectory), blue, TRAJECTORYLINEWIDTH));
-        markerArray.markers.back().ns = "EE Trajectory";
-
         // Extract base pose from state
         std::for_each(mpcStateTrajectory.begin(), mpcStateTrajectory.end(),
                       [&](const vector_t& state)
@@ -241,26 +213,78 @@ namespace ocs2::mobile_manipulator
                           const auto r_world_base = getBasePosition(state, modelInfo_);
                           const Eigen::Quaternion<scalar_t> q_world_base =
                               getBaseOrientation(state, modelInfo_);
-
                           // convert to ros message
-                          geometry_msgs::msg::Pose pose;
-                          pose.position = ros_msg_helpers::getPointMsg(r_world_base);
-                          pose.orientation =
+                          geometry_msgs::msg::Pose base_pose;
+                          base_pose.position = ros_msg_helpers::getPointMsg(r_world_base);
+                          base_pose.orientation =
                               ros_msg_helpers::getOrientationMsg(q_world_base);
-                          baseTrajectory.push_back(pose.position);
-                          poseArray.poses.push_back(std::move(pose));
+                          
+                          // Add base position to base trajectory
+                          baseTrajectory.push_back(base_pose.position);
+                          // Add base pose to pose array
+                          poseArray.poses.push_back(std::move(base_pose));
                       });
 
-        markerArray.markers.emplace_back(ros_msg_helpers::getLineMsg(
-            std::move(baseTrajectory), red, TRAJECTORYLINEWIDTH));
-        markerArray.markers.back().ns = "Base Trajectory";
+        // End-effector trajectory
+        std::vector<geometry_msgs::msg::Point> endEffectorTrajectory;
+        endEffectorTrajectory.reserve(mpcStateTrajectory.size());
+        const auto& model = pinocchioInterface_.getModel();
+        auto& data = pinocchioInterface_.getData();
+        // Extract end-effector pose from state
+        std::for_each(mpcStateTrajectory.begin(), mpcStateTrajectory.end(),
+                      [&](const Eigen::VectorXd& state)
+                      {
+                          pinocchio::forwardKinematics(model, data, state);
+                          pinocchio::updateFramePlacements(model, data);
+                          const auto eeIndex = model.getBodyId(modelInfo_.eeFrame);
+                          const vector_t eePosition = data.oMf[eeIndex].translation();
+                          
+                          // Add end-effector position to end-effector trajectory
+                          endEffectorTrajectory.push_back(ros_msg_helpers::getPointMsg(eePosition));
+                          // Add end-effector pose to pose array
+                          geometry_msgs::msg::Pose ee_pose;
+                          ee_pose.position = ros_msg_helpers::getPointMsg(eePosition);
+                          const Eigen::Matrix3d eeRotation = data.oMf[eeIndex].rotation();
+                          const Eigen::Quaterniond eeOrientation(eeRotation);
+                          ee_pose.orientation = ros_msg_helpers::getOrientationMsg(eeOrientation);
+                          poseArray.poses.push_back(std::move(ee_pose));
+                            
+                      });
 
+        // Base trajectory marker array
+        markerArray.markers.emplace_back(ros_msg_helpers::getLineMsg(
+            std::move(baseTrajectory), baseTrajectoryColor, TRAJECTORYLINEWIDTH));
+        markerArray.markers.back().ns = "Base Trajectory";
+        // End-effector trajectory marker array
+        markerArray.markers.emplace_back(ros_msg_helpers::getLineMsg(
+            std::move(endEffectorTrajectory), eeTrajectoryColor, TRAJECTORYLINEWIDTH));
+        markerArray.markers.back().ns = "EE Trajectory";
+
+        
+        // Array settings
         assignHeader(markerArray.markers.begin(), markerArray.markers.end(),
                      ros_msg_helpers::getHeaderMsg("world", timeStamp));
         assignIncreasingId(markerArray.markers.begin(), markerArray.markers.end());
         poseArray.header = ros_msg_helpers::getHeaderMsg("world", timeStamp);
 
+        // Publish marker and pose arrays
         stateOptimizedPublisher_->publish(markerArray);
         stateOptimizedPosePublisher_->publish(poseArray);
+    }
+
+    /* Main function */
+    void MobileManipulatorDummyVisualization::update(
+        const SystemObservation& observation, const PrimalSolution& policy,
+        const CommandData& command)
+    {
+        const rclcpp::Time timeStamp = node_->get_clock()->now();
+
+        publishObservation(timeStamp, observation);
+        publishTargetTrajectories(timeStamp, command.mpcTargetTrajectories_);
+        publishOptimizedTrajectory(timeStamp, policy);
+        if (geometryVisualization_ != nullptr)
+        {
+            geometryVisualization_->publishDistances(observation.state);
+        }
     }
 }

@@ -48,9 +48,18 @@ using namespace mobile_manipulator;
 
 namespace {
 
+/******************************************************************************
+This code shares some of the implementations in /robotics/ocs2_ros_interfaces/src/mrt/MRT_ROS_Dummy_Loop.cpp
+but in a more custom manner.
+ ******************************************************************************/
+
+
+/* Helpers */
+// Helper:
 // No-op hook matching MRT_ROS_Dummy_Loop API
 inline void modifyObservation(SystemObservation& /*observation*/) {}
 
+// Helper:
 // Forward integrate one step (matches MRT_ROS_Dummy_Loop::forwardSimulation)
 inline SystemObservation forwardSimulation(ocs2::MRT_ROS_Interface& mrt,
                                            double mrtDesiredFrequency,
@@ -60,10 +69,14 @@ inline SystemObservation forwardSimulation(ocs2::MRT_ROS_Interface& mrt,
   SystemObservation nextObservation;
   nextObservation.time = currentObservation.time + dt;
   if (mrt.isRolloutSet()) {
+    // If available, use the provided rollout as to
+    // integrate the dynamics.
     mrt.rolloutPolicy(currentObservation.time, currentObservation.state, dt,
                       nextObservation.state, nextObservation.input,
                       nextObservation.mode);
   } else {
+    // Otherwise, we fake integration by interpolating the current MPC
+    // policy at t+dt
     mrt.evaluatePolicy(currentObservation.time + dt, currentObservation.state,
                        nextObservation.state, nextObservation.input,
                        nextObservation.mode);
@@ -72,7 +85,10 @@ inline SystemObservation forwardSimulation(ocs2::MRT_ROS_Interface& mrt,
   return nextObservation;
 }
 
-// Helper to check policy freshness in synchronized mode
+// Helper:
+// Check if policy is updated and starts at the given time (check policy freshness in synchronized mode).
+// Due to ROS message conversion delay and very fast MPC loop, we might get an
+// old policy instead of the latest one.
 inline bool policyUpdatedForTime(ocs2::MRT_ROS_Interface& mrt,
                                  double mpcDesiredFrequency,
                                  double time) {
@@ -84,8 +100,7 @@ inline bool policyUpdatedForTime(ocs2::MRT_ROS_Interface& mrt,
   return std::abs(t0 - time) < (tolFactor / std::max(mpcDesiredFrequency, 1e-6));
 }
 
-// (Paused branch TODO left intentionally empty)
-
+// Helper:
 // Synchronized dummy loop (publishes observation at MPC update boundaries)
 inline void synchronizedDummyLoop(ocs2::MRT_ROS_Interface& mrt,
                                   double mrtDesiredFrequency,
@@ -95,10 +110,12 @@ inline void synchronizedDummyLoop(ocs2::MRT_ROS_Interface& mrt,
                                   const std::vector<std::shared_ptr<ocs2::DummyObserver>>& observers,
                                   std::atomic<bool>& running,
                                   std::atomic<bool>& resume_requested) {
+  // Determine the ratio between MPC updates and simulation steps.
   const auto mpcUpdateRatio =
       std::max(static_cast<size_t>(mrtDesiredFrequency / std::max(mpcDesiredFrequency, 1e-6)),
                static_cast<size_t>(1));
 
+  // Loop variables
   size_t loopCounter = 0;
   SystemObservation currentObservation = initObservation;
   bool wasRunning = true;
@@ -122,10 +139,10 @@ inline void synchronizedDummyLoop(ocs2::MRT_ROS_Interface& mrt,
         }
       }
 
-      // Simulate one step
+      // Forward simulate one step
       auto nextObservation = forwardSimulation(mrt, mrtDesiredFrequency, currentObservation);
 
-      // Hook for user modifications
+      // User-defined modifications before publishing
       modifyObservation(nextObservation);
 
       // Publish observation only when a new policy will be requested next step
@@ -181,10 +198,10 @@ inline void realtimeDummyLoop(ocs2::MRT_ROS_Interface& mrt,
         // Policy available starting at: mrt.getPolicy().timeTrajectory_.front()
       }
 
-      // Simulate one step
+      // Forward simulate one step
       auto nextObservation = forwardSimulation(mrt, mrtDesiredFrequency, currentObservation);
 
-      // Hook for user modifications
+      // User-defined modifications before publishing
       modifyObservation(nextObservation);
 
       // Publish observation every step
@@ -217,8 +234,11 @@ inline void run(ocs2::MRT_ROS_Interface& mrt,
                 std::atomic<bool>& running,
                 std::atomic<bool>& resume_requested) {
   RCLCPP_INFO(rclcpp::get_logger("MobileManipulatorDummyMRT"), "Waiting for the initial policy ...");
+  
+  // Reset MPC node
   mrt.resetMpcNode(initTargetTrajectories);
 
+  // Wait for the initial policy
   while (!mrt.initialPolicyReceived() && rclcpp::ok()) {
     mrt.spinMRT();
     mrt.setCurrentObservation(initObservation);
@@ -226,6 +246,7 @@ inline void run(ocs2::MRT_ROS_Interface& mrt,
   }
   RCLCPP_INFO(rclcpp::get_logger("MobileManipulatorDummyMRT"), "Initial policy has been received.");
 
+  // Pick simulation loop mode (synchronized or best-effort)
   if (mpcDesiredFrequency > 0.0) {
     synchronizedDummyLoop(mrt, mrtDesiredFrequency, mpcDesiredFrequency, initObservation, initTargetTrajectories, observers, running, resume_requested);
   } else {
@@ -279,7 +300,7 @@ int main(int argc, char** argv)
     // initial command: set to current end-effector pose(s) to avoid any motion
     vector_t initTarget;
 
-    // Compute forward kinematics for the initial state
+    // Compute forward kinematics for the initial state (via pinocchio interface)
     const auto& pinInterface = interface.getPinocchioInterface();
     const auto& model = pinInterface.getModel();
     auto data = pinInterface.getData();
@@ -289,7 +310,8 @@ int main(int argc, char** argv)
     const auto& info = interface.getManipulatorModelInfo();
 
     if (interface.dual_arm_)
-    {
+    {   
+        // Dual-arm mode
         initTarget.resize(14);
 
         // Left arm end-effector pose
@@ -307,7 +329,8 @@ int main(int argc, char** argv)
         initTarget.segment<4>(10) = qR.coeffs(); // [qx, qy, qz, qw]
     }
     else
-    {
+    {   
+        // Singel-arm mode
         initTarget.resize(7);
 
         const auto ee_id = model.getFrameId(info.eeFrame);
