@@ -44,6 +44,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 using namespace ocs2;
 using namespace ocs2::mobile_manipulator;
 
+/* Helpers */
 /**
  * Read dualArmMode configuration from taskFile
  */
@@ -110,14 +111,16 @@ TargetTrajectories goalPoseToTargetTrajectories(
     const Eigen::Vector3d& position, const Eigen::Quaterniond& orientation,
     const SystemObservation& observation)
 {
-    // time trajectory
+    // 1) Time trajectory
     const scalar_array_t timeTrajectory{observation.time};
-    // state trajectory: 3 + 4 for desired position vector and orientation
-    // quaternion
-    const vector_t target =
-        (vector_t(7) << position, orientation.coeffs()).finished();
+    
+    // 2) State trajectory
+    // Desired position vector and orientation (quaternion) (3 + 4 dimensional)
+    const vector_t target = (vector_t(7) << 
+        position, orientation.coeffs()).finished();
     const vector_array_t stateTrajectory{target};
-    // input trajectory
+    
+    // 3) Input trajectory
     const vector_array_t inputTrajectory{
         vector_t::Zero(observation.input.size())
     };
@@ -127,26 +130,26 @@ TargetTrajectories goalPoseToTargetTrajectories(
 
 /**
  * Converts the poses of dual arm interactive markers to TargetTrajectories.
- * This function combines both left and right arm target poses into a single trajectory.
+ * This function combines both left and right arm target poses into a single trajectory as MPC's target.
  */
 TargetTrajectories dualArmGoalPoseToTargetTrajectories(
     const Eigen::Vector3d& leftPosition, const Eigen::Quaterniond& leftOrientation,
     const Eigen::Vector3d& rightPosition, const Eigen::Quaterniond& rightOrientation,
     const SystemObservation& observation)
 {
-    // time trajectory
+    // 1) Time trajectory
     const scalar_array_t timeTrajectory{observation.time};
 
-    // state trajectory: 14 dimensions (7 for left arm + 7 for right arm)
+    // 2) State trajectory
+    // 14 dimensional (7 for left arm + 7 for right arm)
     // [left_x, left_y, left_z, left_qw, left_qx, left_qy, left_qz,
     //  right_x, right_y, right_z, right_qw, right_qx, right_qy, right_qz]
     const vector_t target = (vector_t(14) <<
         leftPosition, leftOrientation.coeffs(),
         rightPosition, rightOrientation.coeffs()).finished();
-
     const vector_array_t stateTrajectory{target};
 
-    // input trajectory
+    // 3) Input trajectory
     const vector_array_t inputTrajectory{
         vector_t::Zero(observation.input.size())
     };
@@ -154,8 +157,11 @@ TargetTrajectories dualArmGoalPoseToTargetTrajectories(
     return {timeTrajectory, stateTrajectory, inputTrajectory};
 }
 
+
+/* Main function*/
 int main(int argc, char* argv[])
-{
+{   
+    // Init ROS 2 node
     const std::string robotName = "mobile_manipulator";
     rclcpp::init(argc, argv);
     rclcpp::Node::SharedPtr node = rclcpp::Node::make_shared(
@@ -164,14 +170,18 @@ int main(int argc, char* argv[])
         .allow_undeclared_parameters(true)
         .automatically_declare_parameters_from_overrides(true));
 
+    // Init param files
     std::string taskFile = node->get_parameter("taskFile").as_string();
     // Optional: urdfFile and libFolder for FK-based initialization
     std::string urdfFile = "";
     std::string libFolder = "";
     try { urdfFile = node->get_parameter("urdfFile").as_string(); } catch (...) {}
     try { libFolder = node->get_parameter("libFolder").as_string(); } catch (...) {}
+
+    // Check dual/single arm mode
     bool dualArmMode = readDualArmModeFromTaskFile(taskFile);
 
+    // Set reference frames
     bool enableDynamicFrame = false;
     if (node->has_parameter("enableDynamicFrame"))
     {
@@ -194,25 +204,14 @@ int main(int argc, char* argv[])
         RCLCPP_INFO(node->get_logger(), "Dynamic frame selection disabled. Using default frame: %s", markerFrame.c_str());
     }
 
+    // Init joystick and auto-position mode
     bool enableJoystick = false;
-    try
-    {
-        enableJoystick = node->get_parameter("enableJoystick").as_bool();
-    }
-    catch (const rclcpp::exceptions::ParameterNotDeclaredException&)
-    {
-        enableJoystick = false;
-    }
+    try { enableJoystick = node->get_parameter("enableJoystick").as_bool(); }
+    catch (const rclcpp::exceptions::ParameterNotDeclaredException&) { enableJoystick = false; }
 
     bool enableAutoPosition = false;
-    try
-    {
-        enableAutoPosition = node->get_parameter("enableAutoPosition").as_bool();
-    }
-    catch (const rclcpp::exceptions::ParameterNotDeclaredException&)
-    {
-        enableAutoPosition = false;
-    }
+    try { enableAutoPosition = node->get_parameter("enableAutoPosition").as_bool(); }
+    catch (const rclcpp::exceptions::ParameterNotDeclaredException&) { enableAutoPosition = false; }
 
     std::unique_ptr<JoystickMarkerWrapper> joystickControl;
     std::unique_ptr<MarkerAutoPositionWrapper> autoPositionWrapper;
@@ -242,6 +241,8 @@ int main(int argc, char* argv[])
             haveObs = true;
         });
 
+    
+    // Dual arm mode
     if (dualArmMode)
     {
         // Create dual arm interactive marker

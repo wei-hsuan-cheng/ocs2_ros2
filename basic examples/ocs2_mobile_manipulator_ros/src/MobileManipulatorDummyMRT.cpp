@@ -339,6 +339,8 @@ int main(int argc, char** argv)
         initTarget.head<3>() = ee.translation();
         initTarget.tail<4>() = q.coeffs(); // [qx, qy, qz, qw]
     }
+
+    // Initial target trajectory (reference for MPC)
     const vector_t zeroInput =
         vector_t::Zero(interface.getManipulatorModelInfo().inputDim);
     const TargetTrajectories initTargetTrajectories({initObservation.time},

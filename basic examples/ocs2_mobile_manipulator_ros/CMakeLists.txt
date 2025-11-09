@@ -58,6 +58,11 @@ add_executable(mobile_manipulator_target src/MobileManipulatorTarget.cpp)
 target_link_libraries(mobile_manipulator_target ${PROJECT_NAME})
 ament_target_dependencies(mobile_manipulator_target ${dependencies})
 
+# Twist target node (pose integration)
+add_executable(mobile_manipulator_twist_target src/MobileManipulatorTwistTarget.cpp)
+target_link_libraries(mobile_manipulator_twist_target ${PROJECT_NAME})
+ament_target_dependencies(mobile_manipulator_twist_target ${dependencies})
+
 #############
 ## Install ##
 #############
@@ -68,6 +73,7 @@ install(
         mobile_manipulator_mpc_node
         mobile_manipulator_dummy_mrt_node
         mobile_manipulator_target
+        mobile_manipulator_twist_target
         DESTINATION lib/${PROJECT_NAME}
 )
 install(DIRECTORY launch rviz
