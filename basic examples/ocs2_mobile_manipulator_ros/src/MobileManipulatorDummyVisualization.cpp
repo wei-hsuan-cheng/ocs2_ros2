@@ -260,7 +260,6 @@ namespace ocs2::mobile_manipulator
             std::move(endEffectorTrajectory), eeTrajectoryColor, TRAJECTORYLINEWIDTH));
         markerArray.markers.back().ns = "EE Trajectory";
 
-        
         // Array settings
         assignHeader(markerArray.markers.begin(), markerArray.markers.end(),
                      ros_msg_helpers::getHeaderMsg("world", timeStamp));

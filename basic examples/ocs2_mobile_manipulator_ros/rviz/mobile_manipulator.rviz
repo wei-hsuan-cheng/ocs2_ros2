@@ -5,6 +5,7 @@ Panels:
     Property Tree Widget:
       Expanded:
         - /Global Options1
+        - /RobotModel1
         - /TF1/Frames1
       Splitter Ratio: 0.5
     Tree Height: 845
@@ -47,7 +48,7 @@ Visualization Manager:
       Plane Cell Count: 10
       Reference Frame: <Fixed Frame>
       Value: true
-    - Alpha: 0.699999988079071
+    - Alpha: 0.4000000059604645
       Class: rviz_default_plugins/RobotModel
       Collision Enabled: false
       Description File: ""
@@ -341,13 +342,34 @@ Visualization Manager:
       Show Descriptions: true
       Show Visual Aids: false
       Value: true
-    - Alpha: 1
+    - Alpha: 0.30000001192092896
       Arrow Length: 0.30000001192092896
       Axes Length: 0.10000000149011612
       Axes Radius: 0.009999999776482582
       Class: rviz_default_plugins/PoseArray
-      Color: 255; 25; 0
-      Enabled: true
+      Color: 255; 0; 0
+      Enabled: false
+      Head Length: 0.07000000029802322
+      Head Radius: 0.029999999329447746
+      Name: PoseArray
+      Shaft Length: 0.23000000417232513
+      Shaft Radius: 0.009999999776482582
+      Shape: Axes
+      Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        Filter size: 10
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /mobile_manipulator/targetPoseTrajectory
+      Value: false
+    - Alpha: 0.30000001192092896
+      Arrow Length: 0.30000001192092896
+      Axes Length: 0.10000000149011612
+      Axes Radius: 0.009999999776482582
+      Class: rviz_default_plugins/PoseArray
+      Color: 255; 0; 0
+      Enabled: false
       Head Length: 0.07000000029802322
       Head Radius: 0.029999999329447746
       Name: PoseArray
@@ -361,6 +383,18 @@ Visualization Manager:
         History Policy: Keep Last
         Reliability Policy: Reliable
         Value: /mobile_manipulator/optimizedPoseTrajectory
+      Value: false
+    - Class: rviz_default_plugins/MarkerArray
+      Enabled: true
+      Name: MarkerArray
+      Namespaces:
+        Target Trajectory: true
+      Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /mobile_manipulator/targetStateTrajectory
       Value: true
     - Class: rviz_default_plugins/MarkerArray
       Enabled: true
@@ -433,25 +467,25 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz_default_plugins/Orbit
-      Distance: 2.3083138465881348
+      Distance: 1.165942668914795
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: -0.1722840964794159
-        Y: -0.13382597267627716
-        Z: 0.3121902346611023
+        X: 0.2962448000907898
+        Y: 0.3277056813240051
+        Z: 0.6349415183067322
       Focal Shape Fixed Size: false
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.4253985285758972
+      Pitch: 0.5472328066825867
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz_default_plugins)
-      Yaw: 0.8503972291946411
+      Yaw: 0.5156584978103638
     Saved: ~
 Window Geometry:
   Displays:
