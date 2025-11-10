@@ -16,8 +16,8 @@
   - State and input
 
   $$
-  \mathbf{x} = \mathbf{q}_{\text{arm}} \in \mathbb{R}^{n},\qquad
-  \mathbf{u} = \dot{\mathbf{q}}_{\text{arm}} \in \mathbb{R}^{n}.
+  \mathbf{x} = \mathbf{q}_{\mathrm{arm}} \in \mathbb{R}^{n},\qquad
+  \mathbf{u} = \dot{\mathbf{q}}_{\mathrm{arm}} \in \mathbb{R}^{n}.
   $$
 
   - Dynamics
@@ -30,8 +30,8 @@
   - State and input
 
   $$
-  \mathbf{x} = \begin{bmatrix}x & y & \theta & \mathbf{q}_{\text{arm}}^{\top}\end{bmatrix}^{\top} \in \mathbb{R}^{3+n},\qquad
-  \mathbf{u} = \begin{bmatrix}v & \omega & \dot{\mathbf{q}}_{\text{arm}}^{\top}\end{bmatrix}^{\top} \in \mathbb{R}^{2+n}.
+  \mathbf{x} = \begin{bmatrix}x & y & \theta & \mathbf{q}_{\mathrm{arm}}^{\top}\end{bmatrix}^{\top} \in \mathbb{R}^{3+n},\qquad
+  \mathbf{u} = \begin{bmatrix}v & \omega & \dot{\mathbf{q}}_{\mathrm{arm}}^{\top}\end{bmatrix}^{\top} \in \mathbb{R}^{2+n}.
   $$
 
   - Kinematics (unicycle base + joint rates)
@@ -42,7 +42,7 @@
   v\cos\theta \\
   v\sin\theta \\
   \omega \\
-  \dot{\mathbf{q}}_{\text{arm}}
+  \dot{\mathbf{q}}_{\mathrm{arm}}
   \end{bmatrix}.
   $$
 
@@ -52,23 +52,23 @@
   - State and input (floating base Euler ZYX + arm)
 
   $$
-  \mathbf{x} = \begin{bmatrix}\mathbf{q}_{\text{base}} \\ \mathbf{q}_{\text{arm}}\end{bmatrix} \in \mathbb{R}^{6+n},\qquad
-  \mathbf{u} = \dot{\mathbf{q}}_{\text{arm}} \in \mathbb{R}^{n}.
+  \mathbf{x} = \begin{bmatrix}\mathbf{q}_{\mathrm{base}} \\ \mathbf{q}_{\mathrm{arm}}\end{bmatrix} \in \mathbb{R}^{6+n},\qquad
+  \mathbf{u} = \dot{\mathbf{q}}_{\mathrm{arm}} \in \mathbb{R}^{n}.
   $$
 
   - Dynamics
 
   $$
-  \dot{\mathbf{q}}_{\text{base}} = \mathbf{0},\qquad
-  \dot{\mathbf{q}}_{\text{arm}} = \mathbf{u}.
+  \dot{\mathbf{q}}_{\mathrm{base}} = \mathbf{0},\qquad
+  \dot{\mathbf{q}}_{\mathrm{arm}} = \mathbf{u}.
   $$
 
 - FullyActuatedFloatingArmManipulator (3)
   - State and input
 
   $$
-  \mathbf{x} = \begin{bmatrix}\mathbf{q}_{\text{base}} \\ \mathbf{q}_{\text{arm}}\end{bmatrix},\qquad
-  \mathbf{u} = \begin{bmatrix}\mathbf{v}_{\text{base}} \\ \dot{\mathbf{q}}_{\text{arm}}\end{bmatrix}.
+  \mathbf{x} = \begin{bmatrix}\mathbf{q}_{\mathrm{base}} \\ \mathbf{q}_{\mathrm{arm}}\end{bmatrix},\qquad
+  \mathbf{u} = \begin{bmatrix}\mathbf{v}_{\mathrm{base}} \\ \dot{\mathbf{q}}_{\mathrm{arm}}\end{bmatrix}.
   $$
 
   - Dynamics (first‑order)
@@ -90,9 +90,9 @@
   - In this demo, the EE soft constraint reads a 7‑vector per arm
 
 $$
-\mathbf{r}^{\text{ee}}(t)
-= \begin{bmatrix}\mathbf{p}^{\top}(t) & \mathbf{q}^{\top}(t)\end{bmatrix}^{\top}
-\in \mathbb{R}^{7},\qquad \mathbf{q} = \begin{bmatrix}q_x& q_y& q_z& q_w\end{bmatrix}^{\top}.
+\mathbf{r}^{\mathrm{ee}}(t)
+= \begin{bmatrix}\boldsymbol{p}_{\mathrm{ref}}^{\top}(t) & \boldsymbol{q}_{\mathrm{ref}}^{\top}(t)\end{bmatrix}^{\top}
+\in \mathbb{R}^{7},\qquad \boldsymbol{q} = \begin{bmatrix}q_x& q_y& q_z& q_w\end{bmatrix}^{\top}.
 $$
 
 - For two arms, concatenate left and right to obtain 14 entries.
@@ -141,15 +141,15 @@ $$
 ## Frames and Quaternions
 
 - For wheel‑based, references and markers are in the `world` frame (see `MobileManipulatorTarget.cpp` helper).
-- Eigen quaternion coefficient order is `[x, y, z, w]`, which is different than its declaration `[w, x, y, z]`. Ensure unit quaternions when packing $\mathbf{q}$.
+- Eigen quaternion coefficient order is `[x, y, z, w]`, which is different than its declaration `[w, x, y, z]`. Ensure unit quaternions when packing $\boldsymbol{q}$.
 
 ## Sanity Checklist
 
 - Confirm `manipulatorModelType` matches your robot.
 - Verify `stateDim`/`inputDim` via `ManipulatorModelInfo` and startup logs.
 - Remember for wheel‑based: 
-  - Inputs $\begin{bmatrix}v& \omega& \dot{\mathbf{q}}_{\text{arm}}^{\top}\end{bmatrix}^{\top}\in \mathbb{R}^{2+n}$.
-  - States $\begin{bmatrix}x& y& \theta& \mathbf{q}_{\text{arm}}^{\top}\end{bmatrix}^{\top}\in \mathbb{R}^{3+n}$.
+  - Inputs $\begin{bmatrix}v& \omega& \dot{\mathbf{q}}_{\mathrm{arm}}^{\top}\end{bmatrix}^{\top}\in \mathbb{R}^{2+n}$.
+  - States $\begin{bmatrix}x& y& \theta& \mathbf{q}_{\mathrm{arm}}^{\top}\end{bmatrix}^{\top}\in \mathbb{R}^{3+n}$.
 
 ## OCS2 Denotation — Optimal Control Problem
 
@@ -172,8 +172,8 @@ Specialization to the wheel–based manipulator:
 - State and input
 
   $$
-  \mathbf{x} = \begin{bmatrix}x & y & \theta & \mathbf{q}_{\text{arm}}^{\top}\end{bmatrix}^{\top},\qquad
-  \mathbf{u} = \begin{bmatrix}v & \omega & \dot{\mathbf{q}}_{\text{arm}}^{\top}\end{bmatrix}^{\top}.
+  \mathbf{x} = \begin{bmatrix}x & y & \theta & \mathbf{q}_{\mathrm{arm}}^{\top}\end{bmatrix}^{\top},\qquad
+  \mathbf{u} = \begin{bmatrix}v & \omega & \dot{\mathbf{q}}_{\mathrm{arm}}^{\top}\end{bmatrix}^{\top}.
   $$
 
 - Dynamics (first‑order kinematics)
@@ -184,7 +184,7 @@ Specialization to the wheel–based manipulator:
   v\cos\theta \\
   v\sin\theta \\
   \omega \\
-  \dot{\mathbf{q}}_{\text{arm}}
+  \dot{\mathbf{q}}_{\mathrm{arm}}
   \end{bmatrix}
   \;=\; \mathbf{f}(\mathbf{x},\mathbf{u}).
   $$
@@ -192,16 +192,17 @@ Specialization to the wheel–based manipulator:
 - End‑effector reference (from `TargetTrajectories`):
 
   $$
-  \mathbf{r}^{\text{ee}}(t)
-  = \begin{bmatrix}\mathbf{p}^{\top}_{\text{ref}}(t) & \mathbf{q}^{\top}_{\text{ref}}(t)\end{bmatrix}^{\top} \in \mathbb{R}^{7}.
+  \mathbf{r}^{\mathrm{ee}}(t)
+  = \begin{bmatrix}\boldsymbol{p}^{\top}_{\mathrm{ref}}(t) & \boldsymbol{q}^{\top}_{\mathrm{ref}}(t)\end{bmatrix}^{\top} \in \mathbb{R}^{7}.
   $$
 
-  - Forward kinematics yields $\mathbf{y}^{\text{ee}}(\mathbf{x}) = \big(\mathbf{p}_{\text{ee}}(\mathbf{x}),\,\mathbf{R}_{\text{ee}}(\mathbf{x})\big)$. Define pose error
+  - Forward kinematics (FK) yields $\mathbf{y}^{\mathrm{ee}}(\mathbf{x}) = \mathbf{H}_{\mathrm{fk}}(\mathbf{x}) = \big(\boldsymbol{p}_{\mathrm{ee}}(\mathbf{x}),\,\boldsymbol{q}_{\mathrm{ee}}(\mathbf{x})\big)$. Quaternion is then converted into rotation matrix $\boldsymbol{R} = \boldsymbol{R}(\boldsymbol{q}) \in SO(3) \simeq \mathbb{R}^{3\times 3}$.
+  - Define end-effector pose error $\mathbf{e} = \big(\mathbf{e}_p,\,\mathbf{e}_o\big)$, where
 
     $$
     \begin{aligned}
-    &\; \mathbf{e}_p = \mathbf{p}_{\text{EE}}(\mathbf{x}) - \mathbf{p}_{\text{ref}}(t) \in \mathbb{R}^3, \\
-    &\; \mathbf{e}_R = \mathrm{Log}\!\left( \mathbf{R}_{\text{ref}}(t)^{\top}\, \mathbf{R}_{\text{EE}}(\mathbf{x}) \right) \in SO(3) \simeq \mathbb{R}^3.
+    &\; \mathbf{e}_p = \boldsymbol{p}_{\text{ee}}(\mathbf{x}) - \boldsymbol{p}_{\mathrm{ref}}(t) \in \mathbb{R}^3, \\
+    &\; \mathbf{e}_o = \mathrm{Log}\!\left( \boldsymbol{R}_{\mathrm{ref}}(t)^{\top}\, \boldsymbol{R}_{\mathrm{ee}}(\mathbf{x}) \right) \in SO(3) \simeq \mathbb{R}^3.
     \end{aligned}
     $$
 
@@ -211,7 +212,7 @@ $$
 \ell(\mathbf{x},\mathbf{u},t)
 = \tfrac{1}{2}\, \mathbf{u}^{\top}\mathbf{R}\,\mathbf{u}
 \; + \; \tfrac{1}{2}\,\mu_p\, \|\mathbf{e}_p\|^2
-\; + \; \tfrac{1}{2}\,\mu_o\, \|\mathbf{e}_R\|^2
+\; + \; \tfrac{1}{2}\,\mu_o\, \|\mathbf{e}_o\|^2
 \; + \; \sum_i p\!\big(h_i(\mathbf{x})\big).
 $$
 
@@ -220,11 +221,11 @@ $$
 $$
 \phi\big(\mathbf{x}(t_f)\big)
 = \tfrac{1}{2}\,\mu_p^{\mathrm{f}}\, \|\mathbf{e}_p(t_f)\|^2
-\; + \; \tfrac{1}{2}\,\mu_o^{\mathrm{f}}\, \|\mathbf{e}_R(t_f)\|^2.
+\; + \; \tfrac{1}{2}\,\mu_o^{\mathrm{f}}\, \|\mathbf{e}_o(t_f)\|^2.
 $$
 
 - Inequalities $h_i$ (enforced softly via penalties $p(\cdot)$):
-  - Self‑collision: $d_i(\mathbf{q}) - d_{\min} \ge 0$ (params `selfCollision.mu`, `selfCollision.delta`).
+  - Self‑collision: $d_i(\mathbf{x}) - d_{\min} \ge 0$ (params `selfCollision.mu`, `selfCollision.delta`).
   - Joint position/velocity limits from URDF and `task.info`.
 
 Parameter mapping:

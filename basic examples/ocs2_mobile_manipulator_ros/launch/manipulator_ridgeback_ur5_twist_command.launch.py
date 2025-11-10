@@ -32,7 +32,7 @@ def generate_launch_description():
     vx_arg = DeclareLaunchArgument('vx', default_value='0.0')
     vy_arg = DeclareLaunchArgument('vy', default_value='0.0')
     vz_arg = DeclareLaunchArgument('vz', default_value='0.0')
-    wx_arg = DeclareLaunchArgument('wx', default_value='-0.1')
+    wx_arg = DeclareLaunchArgument('wx', default_value='-0.05')
     wy_arg = DeclareLaunchArgument('wy', default_value='0.0')
     wz_arg = DeclareLaunchArgument('wz', default_value='0.0')
 
