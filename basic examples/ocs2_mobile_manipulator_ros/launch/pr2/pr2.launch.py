@@ -34,7 +34,7 @@ def generate_launch_description():
         launch.actions.IncludeLaunchDescription(
             launch.launch_description_sources.PythonLaunchDescriptionSource(
                 os.path.join(get_package_share_directory(
-                    'ocs2_mobile_manipulator_ros'), 'launch/include/mobile_manipulator.launch.py')
+                    'ocs2_mobile_manipulator_ros'), 'launch/include/mobile_manipulator_marker.launch.py')
             ),
             launch_arguments={
                 'rviz': launch.substitutions.LaunchConfiguration('rviz'),

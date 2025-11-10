@@ -53,10 +53,10 @@ add_executable(mobile_manipulator_dummy_mrt_node
 target_link_libraries(mobile_manipulator_dummy_mrt_node ${PROJECT_NAME})
 ament_target_dependencies(mobile_manipulator_dummy_mrt_node ${dependencies})
 
-# Target node
-add_executable(mobile_manipulator_target src/MobileManipulatorTarget.cpp)
-target_link_libraries(mobile_manipulator_target ${PROJECT_NAME})
-ament_target_dependencies(mobile_manipulator_target ${dependencies})
+# Marker target node (renamed)
+add_executable(mobile_manipulator_marker_target src/MobileManipulatorMarkerTarget.cpp)
+target_link_libraries(mobile_manipulator_marker_target ${PROJECT_NAME})
+ament_target_dependencies(mobile_manipulator_marker_target ${dependencies})
 
 # Twist target node (pose integration)
 add_executable(mobile_manipulator_twist_target src/MobileManipulatorTwistTarget.cpp)
@@ -72,7 +72,7 @@ install(
         TARGETS
         mobile_manipulator_mpc_node
         mobile_manipulator_dummy_mrt_node
-        mobile_manipulator_target
+        mobile_manipulator_marker_target
         mobile_manipulator_twist_target
         DESTINATION lib/${PROJECT_NAME}
 )

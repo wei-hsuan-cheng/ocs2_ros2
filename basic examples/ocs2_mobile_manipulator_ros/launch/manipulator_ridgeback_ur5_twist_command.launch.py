@@ -39,7 +39,7 @@ def generate_launch_description():
     include_all = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             os.path.join(get_package_share_directory('ocs2_mobile_manipulator_ros'),
-                         'launch/include/mobile_manipulator_twist_command.launch.py')
+                         'launch/include/mobile_manipulator_twist.launch.py')
         ),
         launch_arguments={
             'rviz': LaunchConfiguration('rviz'),

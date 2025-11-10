@@ -31,17 +31,24 @@ def generate_launch_description():
             default_value=get_package_share_directory(
                 'ocs2_mobile_manipulator') + '/auto_generated/ridgeback_ur5'
         ),
+        launch.actions.DeclareLaunchArgument(
+            name='enableJoystick',
+            default_value='false'
+        ),
+
+
         launch.actions.IncludeLaunchDescription(
             launch.launch_description_sources.PythonLaunchDescriptionSource(
                 os.path.join(get_package_share_directory(
-                    'ocs2_mobile_manipulator_ros'), 'launch/include/mobile_manipulator.launch.py')
+                    'ocs2_mobile_manipulator_ros'), 'launch/include/mobile_manipulator_marker.launch.py')
             ),
             launch_arguments={
                 'rviz': launch.substitutions.LaunchConfiguration('rviz'),
                 'debug': launch.substitutions.LaunchConfiguration('debug'),
                 'urdfFile': launch.substitutions.LaunchConfiguration('urdfFile'),
                 'taskFile': launch.substitutions.LaunchConfiguration('taskFile'),
-                'libFolder': launch.substitutions.LaunchConfiguration('libFolder')
+                'libFolder': launch.substitutions.LaunchConfiguration('libFolder'),
+                'enableJoystick': launch.substitutions.LaunchConfiguration('enableJoystick'),
             }.items()
         )
     ])
