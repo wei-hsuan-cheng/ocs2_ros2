@@ -61,6 +61,10 @@ def generate_launch_description():
             default_value='true'
         ),
         DeclareLaunchArgument(
+            name='markerPublishRate',
+            default_value='10.0'
+        ),
+        DeclareLaunchArgument(
             name='debug',
             default_value='false'
         ),
@@ -166,6 +170,9 @@ def generate_launch_description():
                 },
                 {
                     'libFolder': LaunchConfiguration('libFolder')
+                },
+                {
+                    'markerPublishRate': LaunchConfiguration('markerPublishRate')
                 },
                 {
                     'enableJoystick': LaunchConfiguration('enableJoystick')

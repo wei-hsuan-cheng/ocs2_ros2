@@ -140,7 +140,7 @@ $$
 
 ## Frames and Quaternions
 
-- For wheel‑based, references and markers are in the `world` frame (see `MobileManipulatorTarget.cpp` helper).
+- For wheel‑based, references and markers are in the `world` frame (see `MobileManipulatorMarkerTarget.cpp` helper).
 - Eigen quaternion coefficient order is `[x, y, z, w]`, which is different than its declaration `[w, x, y, z]`. Ensure unit quaternions when packing $\boldsymbol{q}$.
 
 ## Sanity Checklist

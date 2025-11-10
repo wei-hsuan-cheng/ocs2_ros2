@@ -41,6 +41,11 @@ def generate_launch_description():
             'ocs2_mobile_manipulator') + '/auto_generated/agileX_piper'
     )
 
+    markerPublishRate = launch.actions.DeclareLaunchArgument(
+        name='markerPublishRate',
+        default_value='10.0'
+    )
+
     visualize_only = launch.actions.DeclareLaunchArgument(
         name='visualize_only',
         default_value='false',
@@ -57,7 +62,8 @@ def generate_launch_description():
             'debug': launch.substitutions.LaunchConfiguration('debug'),
             'urdfFile': launch.substitutions.LaunchConfiguration('urdfFile'),
             'taskFile': launch.substitutions.LaunchConfiguration('taskFile'),
-            'libFolder': launch.substitutions.LaunchConfiguration('libFolder')
+            'libFolder': launch.substitutions.LaunchConfiguration('libFolder'),
+            'markerPublishRate': launch.substitutions.LaunchConfiguration('markerPublishRate')
         }.items(),
         condition=UnlessCondition(LaunchConfiguration('visualize_only'))
     )
@@ -82,6 +88,7 @@ def generate_launch_description():
         urdfFile,
         taskFile,
         libFolder,
+        markerPublishRate,
         visualize_only,
         mobile_manipulator,
         visualize

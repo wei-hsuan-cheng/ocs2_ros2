@@ -31,6 +31,10 @@ def generate_launch_description():
             default_value=get_package_share_directory(
                 'ocs2_mobile_manipulator') + '/auto_generated/mabi_mobile'
         ),
+        launch.actions.DeclareLaunchArgument(
+            name='markerPublishRate',
+            default_value='10.0'
+        ),
         launch.actions.IncludeLaunchDescription(
             launch.launch_description_sources.PythonLaunchDescriptionSource(
                 os.path.join(get_package_share_directory(
@@ -41,7 +45,8 @@ def generate_launch_description():
                 'debug': launch.substitutions.LaunchConfiguration('debug'),
                 'urdfFile': launch.substitutions.LaunchConfiguration('urdfFile'),
                 'taskFile': launch.substitutions.LaunchConfiguration('taskFile'),
-                'libFolder': launch.substitutions.LaunchConfiguration('libFolder')
+                'libFolder': launch.substitutions.LaunchConfiguration('libFolder'),
+                'markerPublishRate': launch.substitutions.LaunchConfiguration('markerPublishRate')
             }.items()
         )
     ])

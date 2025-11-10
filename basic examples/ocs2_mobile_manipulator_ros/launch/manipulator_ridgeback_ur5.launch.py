@@ -32,6 +32,10 @@ def generate_launch_description():
                 'ocs2_mobile_manipulator') + '/auto_generated/ridgeback_ur5'
         ),
         launch.actions.DeclareLaunchArgument(
+            name='markerPublishRate',
+            default_value='100.0'
+        ),
+        launch.actions.DeclareLaunchArgument(
             name='enableJoystick',
             default_value='false'
         ),
@@ -48,6 +52,7 @@ def generate_launch_description():
                 'urdfFile': launch.substitutions.LaunchConfiguration('urdfFile'),
                 'taskFile': launch.substitutions.LaunchConfiguration('taskFile'),
                 'libFolder': launch.substitutions.LaunchConfiguration('libFolder'),
+                'markerPublishRate': launch.substitutions.LaunchConfiguration('markerPublishRate'),
                 'enableJoystick': launch.substitutions.LaunchConfiguration('enableJoystick'),
             }.items()
         )

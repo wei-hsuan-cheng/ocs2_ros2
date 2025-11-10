@@ -121,6 +121,7 @@ class TwistTargetNode : public rclcpp::Node {
     const auto period = std::chrono::duration<double>(1.0 / std::max(1e-6, params_.publish_rate_hz));
     timer_ = this->create_wall_timer(period, std::bind(&TwistTargetNode::onTimer, this));
 
+    // Init logging
     RCLCPP_INFO(this->get_logger(), "Twist target node started. Publishing to %s_mpc_target at %.1f Hz",
                 robotName_.c_str(), params_.publish_rate_hz);
   }
