@@ -17,15 +17,15 @@ OCS2_ROS2 is developed based on [OCS2](https://github.com/leggedrobotics/ocs2), 
 
 ### 2025.08 (original repo [`legubiao/ocs2_ros2`](https://github.com/legubiao/ocs2_ros2))
 
-**Pinocchio 3 Dependency Optimization**
+<!-- **Pinocchio 3 Dependency Optimization**
 - Upgraded to Pinocchio 3 version for better performance and stability
 - Support for installing Pinocchio from ROS sources, avoiding complex third-party package management
 
 **Dual-Arm Mobile Manipulator Support**
 - Added Dual-Arm Mobile Manipulator functionality
-- Enhanced interactive markers for better user operation experience
+- Enhanced interactive markers for better user operation experience -->
 
-### Tested Platform
+### Tested Platforms
 
 * Intel Nuc X15 (i7-11800H):
     * Ubuntu 22.04 ROS 2 Humble  (WSL2 included)
