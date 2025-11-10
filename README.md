@@ -2,9 +2,20 @@
 
 ## 1. Summary
 
-OCS2_ROS2 is developed based on [OCS2](https://github.com/leggedrobotics/ocs2), it was refactored to be compatible with ROS2 and modern cmake.
+OCS2_ROS2 is developed based on [OCS2](https://github.com/leggedrobotics/ocs2), it was refactored to be compatible with ROS 2 and modern cmake. (Forked from [`legubiao/ocs2_ros2`](https://github.com/legubiao/ocs2_ros2))
 
-### What's New (2025.08)
+### Version History
+
+### 2025.11 (forked repo [`wei-hsuan-cheng/ocs2_ros2`](https://github.com/wei-hsuan-cheng/ocs2_ros2))
+
+**Multiple Target Mode for Mobile Manipulator**
+- Marker target mode: interactive marker for end-effector pose tracking.
+- Twist target mode: end-effector twist tracking via pose forward propagation.
+- Trajectory target mode: end-effector trajectory tracking (time-parameterized path).
+  
+**Fixed small bugs**
+
+### 2025.08 (original repo [`legubiao/ocs2_ros2`](https://github.com/legubiao/ocs2_ros2))
 
 **Pinocchio 3 Dependency Optimization**
 - Upgraded to Pinocchio 3 version for better performance and stability
@@ -14,30 +25,28 @@ OCS2_ROS2 is developed based on [OCS2](https://github.com/leggedrobotics/ocs2), 
 - Added Dual-Arm Mobile Manipulator functionality
 - Enhanced interactive markers for better user operation experience
 
-The IDE I used is CLion, you can follow the [guide](https://www.jetbrains.com/help/clion/ros2-tutorial.html) to set up
-the IDE.
-
 ### Tested Platform
 
 * Intel Nuc X15 (i7-11800H):
-    * Ubuntu 22.04 ROS2 Humble  (WSL2 included)
-    * Ubuntu 24.04 ROS2 Jazzy   (WSL2 included)
+    * Ubuntu 22.04 ROS 2 Humble  (WSL2 included)
+    * Ubuntu 24.04 ROS 2 Jazzy   (WSL2 included)
 * Lenovo P16v (i7-13800H):
-    * Ubuntu 24.04 ROS2 Jazzy
+    * Ubuntu 24.04 ROS 2 Jazzy
 * Jetson Orin Nano
-    * Ubuntu 22.04 ROS2 Humble (JetPack 6.1)
+    * Ubuntu 22.04 ROS 2 Humble (JetPack 6.1)
+* VM on MacBook Pro with M2 (arm64)
+  * Ubuntu 22.04 ROS 2 Humble
 
 ## 2. Installation
 
 ### 2.1 Prerequisites
 
-The OCS2 library is written in C++17. It is tested under Ubuntu with library versions as provided in the package
-sources.
+The OCS2 library is written in C++17. It is tested under Ubuntu with library versions as provided in the package sources.
 
-Tested system and ROS2 version:
+Tested system and ROS 2 version:
 
-* Ubuntu 24.04 ROS2 Jazzy
-* Ubuntu 22.04 ROS2 Humble
+* Ubuntu 24.04 ROS 2 Jazzy
+* Ubuntu 22.04 ROS 2 Humble
 
 ### 2.2 Dependencies
 
@@ -53,27 +62,31 @@ Tested system and ROS2 version:
 ### 2.3 Clone Repositories
 
 * Create a new workspace or clone the project to your workspace
-
-```bash
-cd ~
-mkdir -p ros2_ws/src
-```
+    ```bash
+    cd ~
+    mkdir -p ros2_ws/src
+    ```
 
 * Clone the repository
+    ```bash
+    cd ~/ros2_ws/src
+    git clone https://github.com/wei-hsuan-cheng/ocs2_ros2
+    cd ocs2_ros2
+    git submodule update --init --recursive
+    ```
 
-```bash
-cd ~/ros2_ws/src
-git clone https://github.com/wei-hsuan-cheng/ocs2_ros2
-cd ocs2_ros2
-git submodule update --init --recursive
-```
+* Install pinocchio and hpp-fcl
+    ```bash
+    cd ~/ros2_ws/src
+    git clone --recurse-submodules https://github.com/wei-hsuan-cheng/pinocchio.git
+    git clone --recurse-submodules https://github.com/wei-hsuan-cheng/hpp-fcl.git
+    ```
 
-* rosdep
-
+<!-- * rosdep
 ```bash
 cd ~/ros2_ws
 rosdep install --from-paths src --ignore-src -r -y
-```
+``` -->
 
 ## 3. Basic Examples
 
@@ -85,15 +98,15 @@ This section contains basic examples for the OCS2 library.
 <summary>🎯 Click to expand Double Integrator example</summary>
 
 * build
-```bash
-cd ~/ros2_ws
-colcon build --packages-up-to ocs2_double_integrator_ros --symlink-install
-```
+    ```bash
+    cd ~/ros2_ws
+    colcon build --packages-up-to ocs2_double_integrator_ros --symlink-install
+    ```
 * run
-```bash
-source ~/ros2_ws/install/setup.bash
-ros2 launch ocs2_double_integrator_ros double_integrator.launch.py
-```
+    ```bash
+    source ~/ros2_ws/install/setup.bash
+    ros2 launch ocs2_double_integrator_ros double_integrator.launch.py
+    ```
 
 https://github.com/user-attachments/assets/581d03ff-43e4-49c9-8f47-a0ce491b585c
 
@@ -105,15 +118,15 @@ https://github.com/user-attachments/assets/581d03ff-43e4-49c9-8f47-a0ce491b585c
 <summary>🛒 Click to expand Cartpole example</summary>
 
 * build
-```bash
-cd ~/ros2_ws
-colcon build --packages-up-to ocs2_cartpole_ros --symlink-install
-```
+    ```bash
+    cd ~/ros2_ws
+    colcon build --packages-up-to ocs2_cartpole_ros --symlink-install
+    ```
 * run
-```bash
-source ~/ros2_ws/install/setup.bash
-ros2 launch ocs2_cartpole_ros cartpole.launch.py
-```
+    ```bash
+    source ~/ros2_ws/install/setup.bash
+    ros2 launch ocs2_cartpole_ros cartpole.launch.py
+    ```
 
 https://github.com/user-attachments/assets/7fe0fe18-3ad5-47dd-9fe2-be90413c2f2f
 
@@ -125,15 +138,15 @@ https://github.com/user-attachments/assets/7fe0fe18-3ad5-47dd-9fe2-be90413c2f2f
 <summary>🏀 Click to expand Ballbot example</summary>
 
 * build
-```bash
-cd ~/ros2_ws
-colcon build --packages-up-to ocs2_ballbot_ros --symlink-install
-```
+    ```bash
+    cd ~/ros2_ws
+    colcon build --packages-up-to ocs2_ballbot_ros --symlink-install
+    ```
 * run
-```bash
-source ~/ros2_ws/install/setup.bash
-ros2 launch ocs2_ballbot_ros ballbot_ddp.launch.py
-```
+    ```bash
+    source ~/ros2_ws/install/setup.bash
+    ros2 launch ocs2_ballbot_ros ballbot_ddp.launch.py
+    ```
 
 https://github.com/user-attachments/assets/c87966b8-525f-4592-a54f-cfaed458a6f2
 
@@ -145,15 +158,15 @@ https://github.com/user-attachments/assets/c87966b8-525f-4592-a54f-cfaed458a6f2
 <summary>🚁 Click to expand Quadrotor example</summary>
 
 * build
-```bash
-cd ~/ros2_ws
-colcon build --packages-up-to ocs2_quadrotor_ros --symlink-install
-```
+    ```bash
+    cd ~/ros2_ws
+    colcon build --packages-up-to ocs2_quadrotor_ros --symlink-install
+    ```
 * run
-```bash
-source ~/ros2_ws/install/setup.bash
-ros2 launch ocs2_quadrotor_ros quadrotor.launch.py
-```
+    ```bash
+    source ~/ros2_ws/install/setup.bash
+    ros2 launch ocs2_quadrotor_ros quadrotor.launch.py
+    ```
 
 https://github.com/user-attachments/assets/aed3173f-a6e6-4499-ae8c-d101bedc5222
 
@@ -165,45 +178,45 @@ https://github.com/user-attachments/assets/aed3173f-a6e6-4499-ae8c-d101bedc5222
 <summary>🦾 Click to expand Mobile Manipulator example</summary>
 
 * build
-```bash
-cd ~/ros2_ws
-colcon build --packages-up-to ocs2_mobile_manipulator_ros --symlink-install
-```
+    ```bash
+    cd ~/ros2_ws
+    colcon build --packages-up-to ocs2_mobile_manipulator_ros --symlink-install
+    ```
 * run Mabi-Mobile
-```bash
-source ~/ros2_ws/install/setup.bash
-ros2 launch ocs2_mobile_manipulator_ros manipulator_mabi_mobile.launch.py
-```
+    ```bash
+    source ~/ros2_ws/install/setup.bash
+    ros2 launch ocs2_mobile_manipulator_ros manipulator_mabi_mobile.launch.py
+    ```
 
-https://github.com/user-attachments/assets/c71f6123-fa3a-4b72-a60f-5509b8c25413
+    https://github.com/user-attachments/assets/c71f6123-fa3a-4b72-a60f-5509b8c25413
 
 * run Kinova Jaco2
-```bash
-source ~/ros2_ws/install/setup.bash
-ros2 launch ocs2_mobile_manipulator_ros manipulator_kinova_j2n6.launch.py
-ros2 launch ocs2_mobile_manipulator_ros manipulator_kinova_j2n7.launch.py
-```
+    ```bash
+    source ~/ros2_ws/install/setup.bash
+    ros2 launch ocs2_mobile_manipulator_ros manipulator_kinova_j2n6.launch.py
+    ros2 launch ocs2_mobile_manipulator_ros manipulator_kinova_j2n7.launch.py
+    ```
 * run Franka Panda
-```bash
-source ~/ros2_ws/install/setup.bash
-ros2 launch ocs2_mobile_manipulator_ros franka.launch.py
-```
+    ```bash
+    source ~/ros2_ws/install/setup.bash
+    ros2 launch ocs2_mobile_manipulator_ros franka.launch.py
+    ```
 
-https://github.com/user-attachments/assets/bab14b46-486e-46dc-a268-bd63616d1010
+    https://github.com/user-attachments/assets/bab14b46-486e-46dc-a268-bd63616d1010
 
 * run Willow Garage PR2
-```bash
-source ~/ros2_ws/install/setup.bash
-ros2 launch ocs2_mobile_manipulator_ros pr2.launch.py
-```
+    ```bash
+    source ~/ros2_ws/install/setup.bash
+    ros2 launch ocs2_mobile_manipulator_ros pr2.launch.py
+    ```
 
-https://github.com/user-attachments/assets/100aae62-9e80-487b-89cf-ea6a97ef2505
+    https://github.com/user-attachments/assets/100aae62-9e80-487b-89cf-ea6a97ef2505
 
 * run Clearpath Ridgeback with UR-5
-```bash
-source ~/ros2_ws/install/setup.bash
-ros2 launch ocs2_mobile_manipulator_ros manipulator_ridgeback_ur5.launch.py 
-```
+    ```bash
+    source ~/ros2_ws/install/setup.bash
+    ros2 launch ocs2_mobile_manipulator_ros manipulator_ridgeback_ur5.launch.py 
+    ```
 
 </details>
 
@@ -213,15 +226,15 @@ ros2 launch ocs2_mobile_manipulator_ros manipulator_ridgeback_ur5.launch.py
 <summary>🐕 Click to expand Legged Robot example</summary>
 
 * build
-```bash
-cd ~/ros2_ws
-colcon build --packages-up-to ocs2_legged_robot_ros --symlink-install
-```
+    ```bash
+    cd ~/ros2_ws
+    colcon build --packages-up-to ocs2_legged_robot_ros --symlink-install
+    ```
 * run
-```bash
-source ~/ros2_ws/install/setup.bash
-ros2 launch ocs2_legged_robot_ros legged_robot_ddp.launch.py
-```
+    ```bash
+    source ~/ros2_ws/install/setup.bash
+    ros2 launch ocs2_legged_robot_ros legged_robot_ddp.launch.py
+    ```
 
 https://github.com/user-attachments/assets/d29551b7-2ac7-428d-9605-f782193bcaf2
 
@@ -247,6 +260,6 @@ https://github.com/user-attachments/assets/d29551b7-2ac7-428d-9605-f782193bcaf2
 
 ## 5. Related Projects
 
-* [quadruped ros2 control](https://github.com/legubiao/quadruped_ros2_control)： Quadruped controller based on OCS2 ROS2
-* [arms ro2 control](https://github.com/fiveages-sim/arms_ros2_control): Mobile manipulator controller based on OCS2 ROS2
-* [robot_descriptions](https://github.com/fiveages-sim/robot_descriptions): More robot configs for OCS2 ROS2
+* [`fiveages-sim/robot_descriptions`](https://github.com/fiveages-sim/robot_descriptions): More robot configs for OCS2_ROS2
+* [`fiveages-sim/arms_ros2_control`](https://github.com/fiveages-sim/arms_ros2_control): Mobile manipulator controller based on OCS2_ROS2
+* [`legubiao/quadruped_ros2_control`](https://github.com/legubiao/quadruped_ros2_control): Quadruped controller based on OCS2_ROS2
