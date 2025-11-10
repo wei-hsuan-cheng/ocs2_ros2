@@ -40,7 +40,6 @@ def generate_launch_description():
             default_value='false'
         ),
 
-
         launch.actions.IncludeLaunchDescription(
             launch.launch_description_sources.PythonLaunchDescriptionSource(
                 os.path.join(get_package_share_directory(
