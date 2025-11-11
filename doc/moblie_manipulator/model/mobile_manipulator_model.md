@@ -36,7 +36,7 @@ Minimize over $\mathbf{u}(\cdot)$ on $[t_0,\,t_f]$; solved with SLQ/ILQR (see `d
   \mathbf{u} = \begin{bmatrix}v & \omega & \dot{\mathbf{q}}_{\mathrm{arm}}^{\top}\end{bmatrix}^{\top}.
   $$
 
-- System dynamics (first‑order kinematic-model; unicycle base + joint rates)
+- System dynamics (first‑order kinematic-model; unicycle base + joint velocities)
   $$
   \dot{\mathbf{x}} =
   \begin{bmatrix}

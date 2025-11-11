@@ -34,7 +34,7 @@ ddp
   displayShortSummary             false // false; true
   checkNumericalStability         false // false; true
   debugPrintRollout               false // false; true
-  debugCaching                    flase // false; true
+  debugCaching                    false // false; true
 
   AbsTolODE                       1e-5
   RelTolODE                       1e-3
