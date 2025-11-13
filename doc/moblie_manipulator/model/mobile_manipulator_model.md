@@ -5,10 +5,10 @@
 - The OCS2 mobile manipulator demo selects the kinematic model via `model_information.manipulatorModelType` in the `task.info` file.
 - Ridgeback + UR5 uses `WheelBasedMobileManipulator` (`manipulatorModelType=1`).
 - Code references:
-  - Dynamics selection/setup: `ocs2_mobile_manipulator/src/MobileManipulatorInterface.cpp:221`
-  - Wheel–base kinematics: `ocs2_mobile_manipulator/src/dynamics/WheelBasedMobileManipulatorDynamics.cpp:44`
-  - End-effector pose constraint: `ocs2_mobile_manipulator/src/MobileManipulatorInterface.cpp:188`
-  - Joint‑limit soft constraints: `ocs2_mobile_manipulator/src/MobileManipulatorInterface.cpp:500`
+  - Dynamics selection/setup: `ocs2_mobile_manipulator/src/MobileManipulatorInterface.cpp:221`.
+  - Wheel–base kinematics: `ocs2_mobile_manipulator/src/dynamics/WheelBasedMobileManipulatorDynamics.cpp:44`.
+  - End-effector pose constraint: `ocs2_mobile_manipulator/src/MobileManipulatorInterface.cpp:188`.
+  - Joint‑limit soft constraints: `ocs2_mobile_manipulator/src/MobileManipulatorInterface.cpp:500`.
 
 ## 2. OCS2 MPC Formulation
 
@@ -106,7 +106,7 @@ $$
 - $\{\mathbf{Q}_{\mathrm{ee}_p},\,\mathbf{Q}_{\mathrm{ee}_o}\}$ are accessed through $\{\mu_p,\mu_o\}$ → `endEffector.muPosition`, `endEffector.muOrientation`.
 - $\{\mathbf{Q}_{\mathrm{ee}_p}^{\mathrm{f}},\,\mathbf{Q}_{\mathrm{ee}_o}^{\mathrm{f}}\}$ are accessed through $\{\mu_p^{\mathrm{f}},\mu_o^{\mathrm{f}}\}$ → `finalEndEffector.muPosition`, `finalEndEffector.muOrientation`.
 - Penalty params → `selfCollision.*`, `joint*Limits.*`.
-- `EndEffectorConstraint` → `ocs2_mobile_manipulator/src/MobileManipulatorInterface.cpp:299, 320–419`
+- `EndEffectorConstraint` → `ocs2_mobile_manipulator/src/MobileManipulatorInterface.cpp:299, 320–419`.
 
 ## 4. Constructing TargetTrajectories (Reference)
 
