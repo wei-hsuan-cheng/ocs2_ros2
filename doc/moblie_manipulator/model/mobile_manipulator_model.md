@@ -46,7 +46,7 @@ $$
   \omega \\
   \dot{\mathbf{q}}_{\mathrm{arm}}
   \end{bmatrix}
-  \,=\, \mathbf{f}(\mathbf{x},\mathbf{u}).
+  \,=\, \mathbf{f}(\mathbf{x},\mathbf{u}) \in \mathbb{R}^{3 + n}.
   $$
 
 - Penalties and constraints (EE error, joint limits, self-collision)
