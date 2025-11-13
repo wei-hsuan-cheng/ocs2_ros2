@@ -1,6 +1,6 @@
 # Mobile Manipulator Targets — Marker, Twist, and Trajectory Modes
 
-This document summarizes how the three target modes construct `TargetTrajectories(timeTrajectory, stateTrajectory, inputTrajectory)` and the corresponding math formulation.
+This document summarizes how the three target modes construct `TargetTrajectories(timeTrajectory, stateTrajectory, inputTrajectory)` and the corresponding math equations. For more details on the model of MPC see [mobile_manipulator_model.md](../model/mobile_manipulator_model.md).
 
 The MPC consumes these via the `ReferenceManager` and evaluates references at query time using linear interpolation.
 
@@ -21,7 +21,9 @@ Construction of `TargetTrajectories` (single arm):
 - `stateTrajectory = { [ p_ref, q_ref ] }`, with `p_ref ∈ R^3`, `q_ref = [qx, qy, qz, qw]^T ∈ R^4` (Eigen coeff order).
   - Zero-order held pose over the horizon:
     $$
-    \mathbf{r}^{\mathrm{ee}}(t) = \begin{bmatrix} \boldsymbol{p}_{\mathrm{ref}}^\top & \boldsymbol{q}_{\mathrm{ref}}^\top \end{bmatrix}^{\top},\quad t \in [t_0, t_0+T].
+    \boldsymbol{\xi}^{\mathrm{ref}}_{\mathrm{ee}}(t) =
+      \begin{bmatrix} \boldsymbol{p}_{\mathrm{ee}}^{\mathrm{ref}}(t) \\
+      \boldsymbol{q}_{\mathrm{ee}}^{\mathrm{ref}}(t)\end{bmatrix} \in \mathbb{R}^{7},\quad t \in [t_0, t_0+T].
     $$
 - `inputTrajectory = { 0_{m} }`, `m = inputDim`.
 
@@ -65,7 +67,7 @@ Construction of `TargetTrajectories`:
         $$
 
 - `inputTrajectory`
-  - Set as zero vector to disable feedward.
+  - Set as zero vector to disable feedforward.
 
 - Wrapping up
   - `timeTrajectory = [t_0, t_1, ..., t_N]`.

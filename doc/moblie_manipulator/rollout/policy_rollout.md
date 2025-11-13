@@ -1,13 +1,13 @@
 **Mobile Manipulator MPC Policy**
 
-- Topic: `/mobile_manipulator_mpc_policy`
+- Topic: `/<robot_name>_mpc_policy`, *e.g.* `/mobile_manipulator_mpc_policy`
 - Type: `ocs2_msgs/msg/MpcFlattenedController`
 - Purpose: Publishes the current MPC policy rollout (predicted state/input trajectories, targets, and auxiliary data) used by the mobile manipulator example.
 
 **Message Layout**
 
 - `controller_type: uint8`
-  - 0 CONTROLLER_UNKNOWN, 1 CONTROLLER_FEEDFORWARD, 2 CONTROLLER_LINEAR.
+  - `0: CONTROLLER_UNKNOWN`, `1: CONTROLLER_FEEDFORWARD`, `2: CONTROLLER_LINEAR`.
 
 - `init_observation: MpcObservation`
   - `time: float64` Current policy start time.
