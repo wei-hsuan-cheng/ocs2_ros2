@@ -98,8 +98,7 @@ $$
 
     $$
     \phi\big(\mathbf{x}(t_f)\big)
-    = \tfrac{1}{2}\, \Big( \|\mathbf{e}_p(t_f)\|^2_{\mathbf{Q}_{\mathrm{ee}_p}^{\mathrm{f}}}
-    \; + \; \|\mathbf{e}_o(t_f)\|^2_{\mathbf{Q}_{\mathrm{ee}_p}^{\mathrm{f}}}\Big).
+    = \tfrac{1}{2}\, \Big( \|\mathbf{e}_p(t_f)\|^2_{\mathbf{Q}_{\mathrm{ee}_p}^{\mathrm{f}}} + \|\mathbf{e}_o(t_f)\|^2_{\mathbf{Q}_{\mathrm{ee}_p}^{\mathrm{f}}}\Big).
     $$
 
 **Parameter mapping in `task.info`**
