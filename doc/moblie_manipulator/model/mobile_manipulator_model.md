@@ -88,9 +88,9 @@ $$
     $$
     \begin{align*}
     \ell(\mathbf{x},\mathbf{u},t) = \
-    & \tfrac{1}{2}\, \Big( \|\mathbf{e}_p\|^2_{\mathbf{Q}_{\mathrm{ee}_p}} + \|\mathbf{e}_o\|^2_{\mathbf{Q}_{\mathrm{ee}_o}} \Big) \quad + \\
-    & \tfrac{1}{2}\, \|\mathbf{e}_{u}\|^2_{\mathbf{R}} \quad + \\
-    & \sum_i p\big(h_i(\mathbf{x})\big).
+    \tfrac{1}{2}\, \Big( \|\mathbf{e}_p\|^2_{\mathbf{Q}_{\mathrm{ee}_p}} + \|\mathbf{e}_o\|^2_{\mathbf{Q}_{\mathrm{ee}_o}} \Big) +
+    \tfrac{1}{2}\, \|\mathbf{e}_{u}\|^2_{\mathbf{R}} +
+    \sum_i p\big(h_i(\mathbf{x})\big).
     \end{align*}
     $$
 
