@@ -26,7 +26,7 @@ $$
 \end{aligned}
 $$
 
-- The MPC formulation minimizes over $\mathbf{u}(\cdot)$ on $[t_0,\,t_f]$, then the optimal control sequence $\mathbf{u}(t)$ and the corresponding state forcasted trajectory $\mathbf{x}(t)$ are rollout in a receding-horizon's fashion.
+- The MPC formulation minimizes over $\mathbf{u}(\cdot)$ on $[t_0,\,t_f]$, then the optimal control sequence $\mathbf{u}(t)$ and the corresponding predicted state trajectory $\mathbf{x}(t)$ are rollout in a receding-horizon's fashion.
 - MPC problem is solved with `SLQ`/`ILQR` (see `ddp` settings in the `task.info` file).
 
 ## 3. Specialization to the wheel–based manipulator, *e.g.* Ridgeback + UR5
