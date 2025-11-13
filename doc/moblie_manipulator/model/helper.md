@@ -8,7 +8,7 @@
     $$
     \begin{align*}
     \ell(\mathbf{x},\mathbf{u},t) = \
-    & \alpha_1 \Big( \|\mathbf{r}_{\mathrm{IE}}(\mathbf{x}) - \mathbf{r}_{\mathrm{IE}}^{\mathrm{ref}}(t)\|^2_{\mathbf{Q}_{\mathrm{ee}_p}} \; + \|\boldsymbol{\zeta}_{\mathrm{IE}}(\mathbf{x},t)\|^2_{\mathbf{Q}_{\mathrm{ee}_o}} \Big) \quad + \\
+    & \alpha_1 \Big( \|\mathbf{r}_{\mathrm{IE}}(\mathbf{x}) - \mathbf{r}_{\mathrm{IE}}^{\mathrm{ref}}(t)\|^2_{\mathbf{Q}_{\mathrm{ee}_p}} \, + \|\boldsymbol{\zeta}_{\mathrm{IE}}(\mathbf{x},t)\|^2_{\mathbf{Q}_{\mathrm{ee}_o}} \Big) \quad + \\
     & \alpha_2 \|\mathbf{x}_{\mathrm{r}} - \mathbf{x}_{\mathrm{r}}^{\mathrm{ref}}(t)\|^2_{\mathbf{Q}_{\mathrm{r}}} \quad + \\
     & \alpha_3 \|\mathbf{x}_{\mathrm{o}} - \mathbf{x}_{\mathrm{o}}^{\mathrm{ref}}(t)\|^2_{\mathbf{Q}_{\mathrm{o}}} \quad + \\
     & \|\mathbf{u} - \mathbf{u}^{\mathrm{ref}}(t)\|^2_{\mathbf{R}} \quad + \\

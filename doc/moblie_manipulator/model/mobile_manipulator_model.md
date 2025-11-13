@@ -16,13 +16,13 @@ For this demo there is a single domain (no mode switches). Using the [OCS2](http
 
 $$
 \begin{aligned}
-\min_{\mathbf{u}(\cdot)}\; & \; \phi\big(\mathbf{x}(t_f)\big)\; + \int_{t_0}^{t_f} \ell\big(\mathbf{x}(t),\mathbf{u}(t),t\big)\,dt \\
-\text{s.t.}\;
-& \; \mathbf{x}(t_0)=\mathbf{x}_0, \\
-& \; \dot{\mathbf{x}}(t) = \mathbf{f}\big(\mathbf{x}(t),\mathbf{u}(t),t\big), \\
-& \; \mathbf{g}_1\big(\mathbf{x}(t),\mathbf{u}(t),t\big) = \mathbf{0}, \\
-& \; \mathbf{g}_2\big(\mathbf{x}(t),t\big) = \mathbf{0}, \\
-& \; \mathbf{h}\big(\mathbf{x}(t),\mathbf{u}(t),t\big) \ge \mathbf{0}.
+\min_{\mathbf{u}(\cdot)}\, & \, \phi\big(\mathbf{x}(t_f)\big)\, + \int_{t_0}^{t_f} \ell\big(\mathbf{x}(t),\mathbf{u}(t),t\big)\,dt \\
+\text{s.t.}\,
+& \, \mathbf{x}(t_0)=\mathbf{x}_0, \\
+& \, \dot{\mathbf{x}}(t) = \mathbf{f}\big(\mathbf{x}(t),\mathbf{u}(t),t\big), \\
+& \, \mathbf{g}_1\big(\mathbf{x}(t),\mathbf{u}(t),t\big) = \mathbf{0}, \\
+& \, \mathbf{g}_2\big(\mathbf{x}(t),t\big) = \mathbf{0}, \\
+& \, \mathbf{h}\big(\mathbf{x}(t),\mathbf{u}(t),t\big) \ge \mathbf{0}.
 \end{aligned}
 $$
 
@@ -46,7 +46,7 @@ $$
   \omega \\
   \dot{\mathbf{q}}_{\mathrm{arm}}
   \end{bmatrix}
-  \;=\; \mathbf{f}(\mathbf{x},\mathbf{u}).
+  \,=\, \mathbf{f}(\mathbf{x},\mathbf{u}).
   $$
 
 - Penalties and constraints (EE error, joint limits, self-collision)
@@ -65,8 +65,8 @@ $$
 
       $$
       \begin{aligned}
-      &\; \mathbf{e}_p = \boldsymbol{p}_{\mathrm{ee}}(\mathbf{x}) - \boldsymbol{p}_{\mathrm{ee}}^{\mathrm{ref}}(t) \in \mathbb{R}^3, \\
-      &\; \mathbf{e}_o = \mathrm{Log}\!\left( \boldsymbol{R}_{\mathrm{ee}}^{\mathrm{ref}}(t)^{\top}\, \boldsymbol{R}_{\mathrm{ee}}(\mathbf{x}) \right) \in SO(3) \simeq \mathbb{R}^3.
+      &\, \mathbf{e}_p = \boldsymbol{p}_{\mathrm{ee}}(\mathbf{x}) - \boldsymbol{p}_{\mathrm{ee}}^{\mathrm{ref}}(t) \in \mathbb{R}^3, \\
+      &\, \mathbf{e}_o = \mathrm{Log}\!\left( \boldsymbol{R}_{\mathrm{ee}}^{\mathrm{ref}}(t)^{\top}\, \boldsymbol{R}_{\mathrm{ee}}(\mathbf{x}) \right) \in SO(3) \simeq \mathbb{R}^3.
       \end{aligned}
       $$
   

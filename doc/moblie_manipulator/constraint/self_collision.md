@@ -23,20 +23,20 @@
 - Inequality per pair:
 
 $$
-f_i(q) \;=\; d_i(q) - d_{\min} \;\ge\; 0,\qquad f(q) = [f_1,\ldots,f_m]^\top.
+f_i(q) \,=\, d_i(q) - d_{\min} \,\ge\, 0,\qquad f(q) = [f_1,\ldots,f_m]^\top.
 $$
 
 - Linearization (analytic form): point Jacobians are built from the parent joint Jacobians translated to the contact point (Pinocchio local‑world aligned frame)
 
 $$
-J_p \;=\; J_{\text{pos}} \;-
+J_p \,=\, J_{\text{pos}} \,-
 \,[p_{\text{offset}}]_\times\, J_{\text{rot}}.
 $$
 
 Let $n_i(q)$ be the unit vector along $(p^2_i-p^1_i)$ (or its opposite if $d_i\le 0$). Then
 
 $$
-\frac{\partial f_i}{\partial q}(q)\;=\; n_i(q)^{\top}\bigl(J_{p^2}(q)-J_{p^1}(q)\bigr).
+\frac{\partial f_i}{\partial q}(q)\,=\, n_i(q)^{\top}\bigl(J_{p^2}(q)-J_{p^1}(q)\bigr).
 $$
 
 - Code: `ocs2_self_collision/src/SelfCollision.cpp` and `SelfCollisionConstraint.cpp`.
@@ -48,10 +48,10 @@ $$
 - The factory wraps the constraint with a relaxed log‑barrier penalty (soft constraint): `RelaxedBarrierPenalty(\mu,\delta)`. For a single inequality $h\ge 0$ (here $h=f_i(q)$):
 
 $$
-p(h)\;=\;
+p(h)\,=\,
 \begin{cases}
 -\mu\,\ln h, & h>\delta,\\[4pt]
--\mu\,\ln\delta\; +\; \mu\,\dfrac{1}{2}\Bigl(\bigl(\tfrac{h-2\delta}{\delta}\bigr)^2-1\Bigr), & \text{otherwise}.
+-\mu\,\ln\delta\, +\, \mu\,\dfrac{1}{2}\Bigl(\bigl(\tfrac{h-2\delta}{\delta}\bigr)^2-1\Bigr), & \text{otherwise}.
 \end{cases}
 $$
 
@@ -72,9 +72,9 @@ The constraint should produce (near) zero gradient when distances are safely abo
 - For a single inequality $h\ge 0$ with multiplier $\lambda$ and scale $\rho$:
 
 $$
-p(h,\lambda)\;=\;\frac{1}{2\rho}\Big(\max\{0,\,\lambda-\rho h\}^2-\lambda^2\Big),
+p(h,\lambda)\,=\,\frac{1}{2\rho}\Big(\max\{0,\,\lambda-\rho h\}^2-\lambda^2\Big),
 \quad
-\nabla_h p(h,\lambda)\;=\;\begin{cases}
+\nabla_h p(h,\lambda)\,=\,\begin{cases}
 0, & h\ge \lambda/\rho,\\
 -(\lambda-\rho h)/\rho, & h<\lambda/\rho.
 \end{cases}
@@ -92,7 +92,7 @@ $$
 - For $h\ge 0$, multiplier $\lambda$, scale $\rho$, define
 
 $$
-p(h,\lambda)\;=\;\frac{\lambda^2}{\rho}\,\psi\!\left(\frac{\rho h}{\lambda}\right),
+p(h,\lambda)\,=\,\frac{\lambda^2}{\rho}\,\psi\!\left(\frac{\rho h}{\lambda}\right),
 $$
 
 where $\psi(\cdot)$ is a shifted, quadratically‑relaxed log barrier. Far from the boundary, both value and gradient decay faster than $-\ln h$, reducing bias to keep increasing $h$.
@@ -102,7 +102,7 @@ where $\psi(\cdot)$ is a shifted, quadratically‑relaxed log barrier. Far from 
 - Implement a simple ReLU‑squared penalty with a user dead‑zone $\varepsilon$:
 
 $$
-p(h)\;=\;\begin{cases}
+p(h)\,=\,\begin{cases}
 0, & h\ge \varepsilon,\\[2pt]
 \tfrac{1}{2}w\,(h-\varepsilon)^2, & h<\varepsilon.
 \end{cases}
