@@ -1,4 +1,4 @@
-# Mobile Manipulator Targets — Marker, Twist, and Trajectory Modes
+# Mobile Manipulator MPC — Target (Marker, Twist, and Trajectory Modes)
 
 This document summarizes how the three target modes construct `TargetTrajectories(timeTrajectory, stateTrajectory, inputTrajectory)` and the corresponding math equations. For more details on the model of MPC see [mobile_manipulator_model.md](../model/mobile_manipulator_model.md).
 

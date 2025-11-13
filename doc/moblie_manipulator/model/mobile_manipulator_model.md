@@ -1,4 +1,4 @@
-# Mobile Manipulator MPC — Model and Targets
+# Mobile Manipulator MPC — Model (System Dynamics)
 
 ## 1. Overview
 
