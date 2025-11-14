@@ -220,7 +220,7 @@ Visualization Manager:
         axle_link:
           Value: false
         base_link:
-          Value: false
+          Value: true
         chassis_link:
           Value: false
         command:
@@ -388,7 +388,7 @@ Visualization Manager:
       Enabled: true
       Name: MarkerArray
       Namespaces:
-        Target Trajectory: true
+        {}
       Topic:
         Depth: 5
         Durability Policy: Volatile
