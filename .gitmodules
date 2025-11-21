@@ -7,6 +7,3 @@
 [submodule "submodules/pinocchio"]
     path = submodules/pinocchio
     url = https://github.com/wei-hsuan-cheng/pinocchio.git
-[submodule "submodules/hpp-fcl"]
-    path = submodules/hpp-fcl
-    url = https://github.com/wei-hsuan-cheng/hpp-fcl.git
