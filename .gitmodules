@@ -1,7 +1,12 @@
 [submodule "ocs2_robotic_assets"]
     path = submodules/ocs2_robotic_assets
     url = https://github.com/wei-hsuan-cheng/ocs2_robotic_assets.git
-
 [submodule "submodules/plane_segmentation_ros2"]
     path = submodules/plane_segmentation_ros2
     url = https://github.com/wei-hsuan-cheng/plane_segmentation_ros2
+[submodule "submodules/pinocchio"]
+    path = submodules/pinocchio
+    url = https://github.com/wei-hsuan-cheng/pinocchio.git
+[submodule "submodules/hpp-fcl"]
+    path = submodules/hpp-fcl
+    url = https://github.com/wei-hsuan-cheng/hpp-fcl.git
