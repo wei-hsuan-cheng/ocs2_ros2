@@ -75,18 +75,17 @@ Tested system and ROS 2 version:
     git submodule update --init --recursive
     ```
 
-* Install pinocchio and hpp-fcl
+* Clone the repository (with all submodules in `.gitmodules`)
     ```bash
     cd ~/ros2_ws/src
-    git clone --recurse-submodules https://github.com/wei-hsuan-cheng/pinocchio.git
-    git clone --recurse-submodules https://github.com/wei-hsuan-cheng/hpp-fcl.git
+    git clone --recursive https://github.com/wei-hsuan-cheng/ocs2_ros2.git
     ```
 
-<!-- * rosdep
-```bash
-cd ~/ros2_ws
-rosdep install --from-paths src --ignore-src -r -y
-``` -->
+    If you forgot `--recursive`, you can run:
+    ```bash
+    cd ~/ros2_ws/src/ocs2_ros2
+    git submodule update --init --recursive
+    ```
 
 ## 3. Basic Examples
 
