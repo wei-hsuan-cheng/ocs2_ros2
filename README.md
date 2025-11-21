@@ -70,7 +70,7 @@ Tested system and ROS 2 version:
 * Clone the repository (with all submodules in `.gitmodules`)
     ```bash
     cd ~/ros2_ws/src
-    git clone --recursive https://github.com/wei-hsuan-cheng/ocs2_ros2.git
+    git clone --recursive https://github.com/wei-hsuan-cheng/ocs2_ros2.git -b ros2_x86
     ```
 
     If you forgot `--recursive`, you can run:
