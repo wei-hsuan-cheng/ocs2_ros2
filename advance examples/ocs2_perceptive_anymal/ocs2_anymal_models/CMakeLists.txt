@@ -21,7 +21,8 @@ set(dependencies
 ###########
 
 # Resolve for the package path at compile time.
-set(GENERATED_INCLUDE_DIR "${CMAKE_CURRENT_BINARY_DIR}/include/${PROJECT_NAME}")
+set(GENERATED_INCLUDE_PARENT "${CMAKE_CURRENT_BINARY_DIR}/include")
+set(GENERATED_INCLUDE_DIR "${GENERATED_INCLUDE_PARENT}/${PROJECT_NAME}")
 file(MAKE_DIRECTORY "${GENERATED_INCLUDE_DIR}")
 configure_file(
         "${PROJECT_SOURCE_DIR}/include/${PROJECT_NAME}/package_path.h.in"
@@ -39,8 +40,8 @@ add_library(${PROJECT_NAME}
 target_include_directories(${PROJECT_NAME}
         PUBLIC
         "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
-        "$<BUILD_INTERFACE:${GENERATED_INCLUDE_DIR}>"
-        "$<INSTALL_INTERFACE:include/${PROJECT_NAME}>")
+        "$<BUILD_INTERFACE:${GENERATED_INCLUDE_PARENT}>"
+        "$<INSTALL_INTERFACE:include>")
 
 ament_target_dependencies(${PROJECT_NAME} ${dependencies})
 target_compile_options(${PROJECT_NAME} PUBLIC ${OCS2_CXX_FLAGS})
@@ -73,6 +74,7 @@ install(
 
 ament_export_dependencies(${dependencies})
 ament_export_targets(export_${PROJECT_NAME} HAS_LIBRARY_TARGET)
+ament_export_include_directories("include")
 
 #############
 ## Testing ##
