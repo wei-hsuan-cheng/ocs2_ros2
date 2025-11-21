@@ -67,14 +67,6 @@ Tested system and ROS 2 version:
     mkdir -p ros2_ws/src
     ```
 
-* Clone the repository
-    ```bash
-    cd ~/ros2_ws/src
-    git clone https://github.com/wei-hsuan-cheng/ocs2_ros2
-    cd ocs2_ros2
-    git submodule update --init --recursive
-    ```
-
 * Clone the repository (with all submodules in `.gitmodules`)
     ```bash
     cd ~/ros2_ws/src
