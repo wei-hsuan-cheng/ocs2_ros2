@@ -4,4 +4,4 @@
 
 [submodule "submodules/plane_segmentation_ros2"]
     path = submodules/plane_segmentation_ros2
-    url = https://github.com/legubiao/plane_segmentation_ros2
+    url = https://github.com/wei-hsuan-cheng/plane_segmentation_ros2
