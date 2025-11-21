@@ -8,7 +8,7 @@ This package provide a visualization of the quadruped robot, in the rviz you can
 
 * build command
 ```bash
-colcon build --packages-up-to ocs2_anymal_models --cmake-args -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DCMAKE_BUILD_TYPE=RelWithDebInfo
+colcon build --symlink-install --packages-up-to ocs2_anymal_models --cmake-args -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DCMAKE_BUILD_TYPE=RelWithDebInfo
 ```
 
 * launch command
