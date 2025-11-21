@@ -59,8 +59,8 @@ install(
 )
 
 install(
-        DIRECTORY include/
-        DESTINATION include/${PROJECT_NAME}
+        DIRECTORY include/${PROJECT_NAME}
+        DESTINATION include
 )
 install(
         DIRECTORY "${GENERATED_INCLUDE_DIR}/"
@@ -74,6 +74,7 @@ install(
 
 ament_export_dependencies(${dependencies})
 ament_export_targets(export_${PROJECT_NAME} HAS_LIBRARY_TARGET)
+# Export only the install include root so downstreams do not pick up absolute build paths.
 ament_export_include_directories("include")
 
 #############

@@ -15,6 +15,17 @@ set(dependencies
         ocs2_quadruped_interface
 )
 
+# Resolve the exported target name for ocs2_anymal_models (namespace differs
+# between build and install).
+set(ANYMAL_MODELS_TARGET "")
+if (TARGET ocs2_anymal_models::ocs2_anymal_models)
+    set(ANYMAL_MODELS_TARGET ocs2_anymal_models::ocs2_anymal_models)
+elseif (TARGET ocs2_anymal_models)
+    set(ANYMAL_MODELS_TARGET ocs2_anymal_models)
+else ()
+    message(FATAL_ERROR "ocs2_anymal_models target not found after find_package()")
+endif ()
+
 ###########
 ## Build ##
 ###########
@@ -24,8 +35,11 @@ add_library(${PROJECT_NAME}
 target_include_directories(${PROJECT_NAME}
         PUBLIC
         "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
-        "$<INSTALL_INTERFACE:include/${PROJECT_NAME}>")
+        "$<INSTALL_INTERFACE:include/${PROJECT_NAME}>"
+        "$<TARGET_PROPERTY:${ANYMAL_MODELS_TARGET},INTERFACE_INCLUDE_DIRECTORIES>")
+
 ament_target_dependencies(${PROJECT_NAME} ${dependencies})
+target_link_libraries(${PROJECT_NAME} ${ANYMAL_MODELS_TARGET})
 target_compile_options(${PROJECT_NAME} PUBLIC ${OCS2_CXX_FLAGS})
 
 
