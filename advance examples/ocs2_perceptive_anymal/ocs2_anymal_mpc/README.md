@@ -7,7 +7,7 @@ This package provide a mpc example for Anymal quadruped robot. Besides the basic
 * build command
 ```bash
 cd ~/ros2_ws/
-colcon build --packages-up-to ocs2_anymal_mpc --symlink-install
+colcon build --symlink-install --packages-up-to ocs2_anymal_mpc
 ```
 
 * launch command
