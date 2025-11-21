@@ -79,6 +79,12 @@ Tested system and ROS 2 version:
     git submodule update --init --recursive
     ```
 
+* `rosdep`
+    ```bash
+    cd ~/ros2_ws
+    rosdep install --from-paths src --ignore-src -r -y
+    ```
+
 ## 3. Basic Examples
 
 This section contains basic examples for the OCS2 library.
