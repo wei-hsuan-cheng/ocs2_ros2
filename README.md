@@ -142,7 +142,10 @@ https://github.com/user-attachments/assets/7fe0fe18-3ad5-47dd-9fe2-be90413c2f2f
 * run
     ```bash
     source ~/ros2_ws/install/setup.bash
+    # Launch demo
     ros2 launch ocs2_ballbot_ros ballbot_ddp.launch.py
+    # Send target pose to ballbot [x, y, yaw] [m, deg] 
+    ros2 run ocs2_ballbot_ros ballbot_target
     ```
 
 https://github.com/user-attachments/assets/c87966b8-525f-4592-a54f-cfaed458a6f2

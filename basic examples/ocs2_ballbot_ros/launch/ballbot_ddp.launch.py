@@ -1,3 +1,5 @@
+import os
+import shutil
 from launch import LaunchDescription
 from launch.substitutions import LaunchConfiguration
 from launch.actions import DeclareLaunchArgument
@@ -16,13 +18,33 @@ def is_wsl():
         return False
 
 
-def generate_launch_description():
-    prefix = "gnome-terminal --"
+def detect_terminal_prefix():
+    """Select a terminal prefix if a GUI terminal is available; otherwise none."""
+    if not os.environ.get('DISPLAY'):
+        print("No DISPLAY found (headless). Launching nodes without an extra terminal.")
+        return ""
+
     if is_wsl():
-        prefix = "xterm -e"
-        print("Current system is WSL, use xterm as terminal")
-    else:
+        if shutil.which('xterm'):
+            print("Current system is WSL, use xterm as terminal")
+            return "xterm -e"
+        print("Current system is WSL, but xterm is not available. Launching nodes without an extra terminal.")
+        return ""
+
+    if shutil.which('gnome-terminal'):
         print("Current system is not WSL, use gnome-terminal as terminal")
+        return "gnome-terminal --"
+
+    if shutil.which('xterm'):
+        print("Current system is not WSL, fallback to xterm as terminal")
+        return "xterm -e"
+
+    print("No supported terminal emulator found. Launching nodes without an extra terminal.")
+    return ""
+
+
+def generate_launch_description():
+    prefix = detect_terminal_prefix()
 
     return LaunchDescription([
         DeclareLaunchArgument(
@@ -55,12 +77,12 @@ def generate_launch_description():
             arguments=[LaunchConfiguration('task_name')],
             output='screen'
         ),
-        Node(
-            package='ocs2_ballbot_ros',
-            executable='ballbot_target',
-            name='ballbot_target',
-            prefix=prefix,
-            arguments=[LaunchConfiguration('task_name')],
-            output='screen'
-        )
+        # Node(
+        #     package='ocs2_ballbot_ros',
+        #     executable='ballbot_target',
+        #     name='ballbot_target',
+        #     prefix=prefix,
+        #     arguments=[LaunchConfiguration('task_name')],
+        #     output='screen'
+        # )
     ])
