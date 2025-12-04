@@ -1,8 +1,8 @@
 # Sequential Linear Quadratic Model Predictive Control (SLQ-MPC)
 
 - Reference literature for SLQ-MPC
-    - [(ICRA2016) Fast nonlinear Model Predictive Control for unified trajectory optimization and tracking](https://ieeexplore.ieee.org/document/7487274)
-    - [(ICRA2017) An Efficient Optimal Planning and Control Framework For Quadrupedal Locomotion](https://ieeexplore.ieee.org/document/7989016)
+    [1] [(ICRA2016) Fast nonlinear Model Predictive Control for unified trajectory optimization and tracking](https://ieeexplore.ieee.org/document/7487274)
+    [2] [(ICRA2017) An Efficient Optimal Planning and Control Framework For Quadrupedal Locomotion](https://ieeexplore.ieee.org/document/7989016)
 ---
 
 ## 1. Nonlinear optimal control problem (discrete time)
@@ -454,7 +454,7 @@ SLQ-MPC wraps the SLQ solver inside an **MPC loop**:
             \big[
             \tilde{x}_k^\top Q\,\tilde{x}_k
             + \tilde{u}_k^\top R\,\tilde{u}_k
-            + W(x_k,t_k)
+            + W(x_k,k)
             \big],
    $$
    where $\tilde{x}_k = x_k - x_k^{\text{ref}}$, $\tilde{u}_k = u_k - u_k^{\text{ref}}$, and $W$ may include waypoint penalties.
@@ -795,5 +795,140 @@ Intuitively:
 - $q_k$ tells you ***“how much do I dislike being in this state at time $k$”***.  
 - That information is stored in the value-function gradient $p_k$.  
 - Dynamic programming then propagates this information backward in time, and through the $g_{k-1}, l_{k-1}$ terms it ultimately changes the entire feedback policy $\{K_j, l_j\}_{j=0}^{N-1}$.
+
+</details>
+
+
+<details>
+<summary>🔽 Appendix C: Waypoint Cost in SLQ-MPC</summary>
+
+### C.1 Waypoint Cost $W(x_k,k)$ in SLQ-MPC (discrete time)
+
+In [1] an intermediate (stage) waypoint cost is introduced to penalize the deviation between desired and current state, with penalties concentrated around specific **time steps** where each waypoint is assigned.
+
+Recall that the overall finite-horizon cost is
+$$
+    \mathcal{J}
+    = (\tilde{x}_N)^\top H \tilde{x}_N
+    + \sum_{k=0}^{N-1}
+        \big[
+        \tilde{x}_k^\top Q\,\tilde{x}_k
+        + \tilde{u}_k^\top R\,\tilde{u}_k
+        + W(x_k,k)
+        \big],
+$$
+where
+$$
+    \tilde{x}_k = x_k - x_k^{\text{ref}}, \qquad
+    \tilde{u}_k = u_k - u_k^{\text{ref}}
+$$
+are deviations from a desired state/input trajectory.
+
+The **waypoint cost** $W(x_k,k)$ is the discrete-time analogue of their continuous-time term:
+$$
+    W(x_k,k)
+    = \sum_{n=0}^{N_{\text{wp}}-1}
+    \hat{x}_{n,k}^\top W_{p,n}\,\hat{x}_{n,k}\;
+    \sqrt{\frac{\rho_{p,n}}{2\pi}}\,
+    \exp\!\Big(
+    -\frac{\rho_{p,n}}{2}\,(k - k_{p,n})^2
+    \Big),
+$$
+where
+
+- $n = 0,\dots,N_{\text{wp}}-1$: waypoint index,  
+- $\hat{x}_{n,k}$: deviation from the $n$-th waypoint state at time step $k$, e.g.  
+  $$\hat{x}_{n,k} = x_k - x_n^{\text{wp}},$$  
+- $W_{p,n}$: waypoint cost matrix (which state components are important at waypoint $n$),  
+- $k_{p,n}$: desired **time step** at which waypoint $n$ should be reached,  
+- $\rho_{p,n}$: temporal sharpness (inverse variance of the Gaussian in the time index).
+
+> Each waypoint contributes a *quadratic penalty in state* multiplied by a *Gaussian bump in time index* centered at $k_{p,n}$.
+
+### C.2 Intuition
+
+- The term $\hat{x}_{n,k}^\top W_{p,n}\hat{x}_{n,k}$ penalizes **state error** to waypoint $n$:
+  $$
+    \hat{x}_{n,k} = x_k - x_n^{\text{wp}}.
+  $$
+- The Gaussian factor
+  $$
+    \sqrt{\frac{\rho_{p,n}}{2\pi}}
+    \exp\!\Big(-\tfrac{\rho_{p,n}}{2}(k - k_{p,n})^2\Big)
+  $$
+  activates this penalty **only near** time step $k_{p,n}$, fading out before and after.
+
+So at each time step $k$:
+
+- The **trajectory-tracking error**
+  $$
+    \tilde{x}_k = x_k - x_k^{\text{ref}}
+  $$
+  measures “How far am I from the **main reference trajectory** right now?” and is penalized by $\tilde{x}_k^\top Q \tilde{x}_k$ for **all** $k$.
+
+- The **waypoint error**
+  $$
+    \hat{x}_{n,k} = x_k - x_n^{\text{wp}}
+  $$
+  measures “How far am I from **waypoint $n$’s state**?”, but is weighted in time by the Gaussian, so it matters **only near** $k_{p,n}$.
+
+In other words:
+
+- $\tilde{x}_k$ pulls the trajectory toward the **global reference** over the whole horizon.  
+- $\hat{x}_{n,k}$ adds extra pull toward **specific waypoint states** at **specific times**.
+
+**Tuning:**
+
+- Larger $W_{p,n}$ $\rightarrow$ waypoint $n$ is more important in state space.  
+- Larger $\rho_{p,n}$ $\rightarrow$ **narrower** time window (more precise timing around $k_{p,n}$).  
+- Smaller $\rho_{p,n}$ $\rightarrow$ looser requirement on when the waypoint is reached.
+
+**Potential concern (double-counting the same objective):**
+
+If the reference trajectory $x_k^{\text{ref}}$ already passes through the waypoints at the desired times (i.e. $x_{k_{p,n}}^{\text{ref}} \approx x_n^{\text{wp}}$), then near $k_{p,n}$ the two errors
+$$
+  \tilde{x}_k = x_k - x_k^{\text{ref}}, \qquad
+  \hat{x}_{n,k} = x_k - x_n^{\text{wp}}
+$$
+are almost the same. In that case, the trajectory cost $\tilde{x}_k^\top Q \tilde{x}_k$ and the waypoint cost $\hat{x}_{n,k}^\top W_{p,n}\hat{x}_{n,k}$ **both pull toward essentially the same target**, and their weights effectively add up.
+
+If $Q$ and $W_{p,n}$ (and the temporal sharpness $\rho_{p,n}$) are chosen too large simultaneously, the combined tracking + waypoint penalties can become **dominant** over other important terms (e.g. input regularization, obstacle costs, soft constraints). In practice, this means you must **carefully tune**:
+
+- the magnitude of $Q$ vs. $W_{p,n}$, and  
+- how sharply in time the waypoint penalty is activated via $\rho_{p,n}$,
+
+to avoid over-emphasizing waypoints relative to the rest of the cost and to reflect the true task priorities.
+
+
+### C.3 Why this form is useful
+
+1. **Soft waypoint constraints**
+
+   Instead of hard constraints $x_{k_{p,n}} = x_n^{\text{wp}}$, they use a cost term.  
+   This lets the optimizer:
+   - strongly **encourage** passing near the waypoint,
+   - but still **violate** it slightly if dynamics or input limits require it.
+
+2. **Quadratic in state $\rightarrow$ SLQ-friendly**
+
+   For each fixed $k$, $W(x_k,k)$ is quadratic in $\hat{x}_{n,k}$.  
+   The time-dependent Gaussian is just a scalar weight, so the cost remains:
+   - quadratic in state,
+   - smooth in the time index.  
+   This fits perfectly into SLQ’s linear–quadratic approximation framework.
+
+3. **Unifies trajectory tracking and waypoint shaping**
+
+   - The usual $Q,R,H$ terms handle final/trajectory tracking via $\tilde{x}_k,\tilde{u}_k$.
+   - $W(x_k,k)$ adds **intermediate landmarks** (gates, windows, obstacle clearances, etc.).  
+   Both are handled uniformly as running/terminal quadratic costs.
+
+4. **Flexible tuning**
+
+   Different waypoints can have different $W_{p,n}$ and $\rho_{p,n}$, allowing:
+   - emphasis on certain state components at specific waypoints,
+   - precise timing for some waypoints and relaxed timing for others.
+
+> The waypoint cost $W(x_k,k)$ is a *time-localized quadratic penalty* that softly pulls the trajectory toward specified intermediate states at specified time steps, while preserving the quadratic structure needed by SLQ. It enforces waypoints “as soft constraints” without making the problem hard or infeasible.
 
 </details>
