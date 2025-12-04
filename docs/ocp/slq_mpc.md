@@ -237,9 +237,6 @@ $$
 V_k(\delta x_k) = \min_{\delta u_k} \mathcal{Q}_k(\delta x_k,\delta u_k).
 $$
 
-Here we aim to express the Q-function and value function of **next** time step $\mathcal{Q}_k(\delta x_k,\delta u_k), V_{k+1}(\delta x_{k+1})$ in terms of the state and input of **current** time step $\delta x_k, \delta u_k$ .
-
-
 ### 6.1 Substitute expansions
 
 Stage cost:
@@ -660,3 +657,151 @@ So the update is:
   - a **local quadratic optimization** step (backward pass)  
   - with a **global cost check** on the true nonlinear problem (line search),  
   ensuring stable, monotonic convergence in practice.
+
+---
+
+## 12. Influence of terminal cost and state cost gradient
+
+### 12.1 Terminal cost $\rightarrow$ boundary condition $\rightarrow$ whole policy
+
+Recall the quadratic expansion of the terminal cost:
+$$
+    h(x_N)
+    \approx h_N^n
+    + h_{x,N}^\top \delta x_N
+    + \tfrac12\,\delta x_N^\top H_N \delta x_N.
+$$
+
+This defines the **terminal value function**:
+$$
+    V_N(\delta x_N)
+    \approx s_N + p_N^\top \delta x_N
+    + \tfrac12\,\delta x_N^\top P_N \delta x_N,
+$$
+
+with
+$$
+    P_N := H_N, \qquad p_N := h_{x,N}.
+$$
+
+Now look at the **last stage** $k = N-1$. The matrices there are
+$$
+    \begin{aligned}
+    & H_{N-1} = R_{N-1} + B_{N-1}^\top P_N B_{N-1}, \\
+    & G_{N-1} = B_{N-1}^\top P_N A_{N-1}, \\
+    & g_{N-1} = r_{N-1} + B_{N-1}^\top p_N.
+    \end{aligned}
+$$
+
+The control law at time $N-1$ is
+$$
+    \delta u_{N-1}^\star
+    = l_{N-1} + K_{N-1} \delta x_{N-1},
+$$
+
+with
+$$
+    K_{N-1} = -H_{N-1}^{-1} G_{N-1}, \qquad
+    l_{N-1} = -H_{N-1}^{-1} g_{N-1}.
+$$
+
+So you can see **explicitly**:
+
+- $P_N$ appears in $H_{N-1}, G_{N-1} \Rightarrow$ changes **feedback** $K_{N-1}$.
+
+- $p_N$ appears in $g_{N-1} \Rightarrow$ changes **feedforward** $l_{N-1}$.
+
+Then we update the value function at time $N-1$:
+$$
+    \tilde{Q}_{N-1} := Q_{N-1} + A_{N-1}^\top P_N A_{N-1},
+$$
+$$
+    \tilde{q}_{N-1} := q_{N-1} + A_{N-1}^\top p_N,
+$$
+and
+$$
+    \begin{aligned}
+    P_{N-1}
+    &= \tilde{Q}_{N-1}
+    + K_{N-1}^\top H_{N-1} K_{N-1}
+    + K_{N-1}^\top G_{N-1}
+    + G_{N-1}^\top K_{N-1}, \\[0.3em]
+    p_{N-1}
+    &= \tilde{q}_{N-1}
+    + K_{N-1}^\top H_{N-1} l_{N-1}
+    + G_{N-1}^\top l_{N-1}
+    + K_{N-1}^\top g_{N-1}.
+    \end{aligned}
+$$
+
+Thus:
+
+- $P_N, p_N$ determine $H_{N-1}, G_{N-1}, g_{N-1}$,
+- which determine $K_{N-1}, l_{N-1}$,
+- which determine $P_{N-1}, p_{N-1}$,
+
+and then at step $k = N-2$ we use $P_{N-1}, p_{N-1}$ in exactly the same way. Repeating this backwards shows:
+
+> The terminal cost sets the *boundary condition* $(P_N,p_N)$ of the value function, and via the Bellman recursion it *influences* $(K_k,l_k)$ at *every earlier* time step.
+
+This is precisely why in MPC, a well-chosen terminal cost (*e.g.* from infinite-horizon LQR) can dramatically change the behavior of the whole finite-horizon controller.
+
+---
+
+### 12.2 How the state cost gradient $q_k = \ell_{x,k}$ influences the policy
+
+The term $q_k$ affects the control policy **indirectly** and its effect on the control law is global in time.
+
+Recall the definitions:
+$$
+    q_k := \ell_{x,k}, \qquad
+    \tilde{q}_k := q_k + A_k^\top p_{k+1}.
+$$
+
+The backward recursion for the value-function gradient is
+$$
+    p_k
+    = \tilde{q}_k
+    + K_k^\top H_k l_k
+    + G_k^\top l_k
+    + K_k^\top g_k.
+$$
+
+So the **chain of influence** from the state cost gradient is:
+
+1. The stage cost gradient w.r.t. state at time $k$ is $q_k = \ell_{x,k}$.
+2. It enters the “effective” linear term
+   $$
+       \tilde{q}_k = q_k + A_k^\top p_{k+1}.
+   $$
+3. $\tilde{q}_k$ contributes directly to the value-function gradient at time $k$:
+   $$
+       p_k
+       = \tilde{q}_k
+       + K_k^\top H_k l_k
+       + G_k^\top l_k
+       + K_k^\top g_k.
+   $$
+4. At the **previous time step** $k-1$, the gradient $p_k$ appears in
+   $$
+       g_{k-1} = r_{k-1} + B_{k-1}^\top p_k,
+   $$
+   and then
+   $$
+       l_{k-1} = -H_{k-1}^{-1} g_{k-1}.
+   $$
+
+So:
+
+- $q_k$ does **not** enter the current step’s $g_k$ **directly**:
+  $$
+      g_k = r_k + B_k^\top p_{k+1}.
+  $$
+- Instead, $q_k$ shapes the **value function** via $p_k$, and this updated $p_k$ then affects **earlier** controls through $g_{k-1}$ and $l_{k-1}$.
+
+Intuitively:
+
+- $q_k$ tells you ***“how much do I dislike being in this state at time $k$”***.  
+- That information is stored in the value-function gradient $p_k$.  
+- Dynamic programming then propagates this information backward in time, and through the $g_{k-1}, l_{k-1}$ terms it ultimately changes the entire feedback policy $\{K_j, l_j\}_{j=0}^{N-1}$.
+---
