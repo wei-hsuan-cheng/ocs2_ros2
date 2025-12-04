@@ -2,6 +2,7 @@
 
 - Reference literature for SLQ-MPC
     - [(ICRA2016) Fast nonlinear Model Predictive Control for unified trajectory optimization and tracking](https://ieeexplore.ieee.org/document/7487274)
+    - [(ICRA2017) An Efficient Optimal Planning and Control Framework For Quadrupedal Locomotion](https://ieeexplore.ieee.org/document/7989016)
 ---
 
 ## 1. Nonlinear optimal control problem (discrete time)
@@ -135,7 +136,6 @@ $$
     }
 $$
 
----
 
 ### 4.2 Terminal cost expansion
 
@@ -185,7 +185,6 @@ This **principle of optimality** is crucial:
 > *Whatever the optimal strategy from now to the end is, its first action plus the optimal strategy afterwards must jointly be optimal.*  
 > Mathematically, this is encoded in the Bellman equation.
 
----
 
 ### 5.2 Local quadratic approximation of the value function
 
@@ -491,7 +490,9 @@ Thus:
 
 ---
 
-## 11. Line search and the role of feedback in SLQ/iLQR
+
+<details>
+<summary>🔽 Appendix A: Line search and the role of feedback in SLQ/iLQR</summary>
 
 You already have the local optimal **incremental** law from the backward pass:
 $$
@@ -506,9 +507,7 @@ There are two closely-related notions here:
 1. **Feedback vs feedforward**  
 2. **Line search in the feedforward direction $\alpha$**
 
----
-
-### 11.1 Where does the feedback term go?
+### A.1 Where does the feedback term go?
 
 At iteration $i$, you have:
 
@@ -558,9 +557,7 @@ $$
 - $K_k$ stays unchanged (it’s the local stabilizing feedback for the LQ subproblem).
 - $\alpha$ scales the **step size** in the direction of the feedforward increment $l_k$.
 
----
-
-### 11.2 What is $\alpha$ and what is “line search”?
+### A.2 What is $\alpha$ and what is “line search”?
 
 After the backward pass, you have a **search direction** in control space, given by the sequence $\{l_k\}_{k=0}^{N-1}$:
 
@@ -596,9 +593,7 @@ This is called a **backtracking line search**. Formally:
   (with feedback and dynamics included in how we evaluate $\mathcal{J}$).
 - We want an $\alpha$ that gives **actual decrease in cost** for the **true nonlinear problem**, not just the local quadratic approximation.
 
----
-
-### 11.3 Why not always $\alpha = 1$?
+### A.3 Why not always $\alpha = 1$?
 
 Intuitively:
 
@@ -622,9 +617,7 @@ $$
 $$
 and pick the **largest** $\alpha$ that produces a sufficient cost decrease.
 
----
-
-### 11.4 Why only scale $l_k$ and not $K_k$?
+### A.4 Why only scale $l_k$ and not $K_k$?
 
 - $K_k$ is chosen to be the **optimal feedback** for the local LQ approximation. It stabilizes deviations around the nominal and shapes how the state trajectory responds to disturbances during the rollout.
 - $l_k$ is the **feedforward step** that shifts the nominal control in the direction of lower cost.
@@ -646,9 +639,7 @@ So the update is:
     = u_k^n + \alpha\, l_k + K_k\big(x_k^{\text{cand}}(\alpha) - x_k^n\big).
   $$
 
----
-
-### 11.5 Summary
+### A.5 Summary
 
 - The **feedback term** $K_k(x_k - x_k^n)$ is always used during the forward rollout to stabilize and correct the trajectory. It is **not** scaled by $\alpha$.
 - The **feedforward term** $l_k$ is the “direction” in control space given by the local LQ solution; we scale it by a step size $\alpha$.
@@ -658,11 +649,13 @@ So the update is:
   - with a **global cost check** on the true nonlinear problem (line search),  
   ensuring stable, monotonic convergence in practice.
 
----
+</details>
 
-## 12. Influence of terminal cost and state cost gradient
 
-### 12.1 Terminal cost $\rightarrow$ boundary condition $\rightarrow$ whole policy
+<details>
+<summary>🔽 Appendix B: Influence of terminal cost and state cost gradient</summary>
+
+### B.1 Terminal cost $\rightarrow$ boundary condition $\rightarrow$ whole policy
 
 Recall the quadratic expansion of the terminal cost:
 $$
@@ -746,9 +739,7 @@ and then at step $k = N-2$ we use $P_{N-1}, p_{N-1}$ in exactly the same way. Re
 
 This is precisely why in MPC, a well-chosen terminal cost (*e.g.* from infinite-horizon LQR) can dramatically change the behavior of the whole finite-horizon controller.
 
----
-
-### 12.2 How the state cost gradient $q_k = \ell_{x,k}$ influences the policy
+### B.2 How the state cost gradient $q_k = \ell_{x,k}$ influences the policy
 
 The term $q_k$ affects the control policy **indirectly** and its effect on the control law is global in time.
 
@@ -804,4 +795,5 @@ Intuitively:
 - $q_k$ tells you ***“how much do I dislike being in this state at time $k$”***.  
 - That information is stored in the value-function gradient $p_k$.  
 - Dynamic programming then propagates this information backward in time, and through the $g_{k-1}, l_{k-1}$ terms it ultimately changes the entire feedback policy $\{K_j, l_j\}_{j=0}^{N-1}$.
----
+
+</details>
