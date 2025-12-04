@@ -1,8 +1,8 @@
 # Sequential Linear Quadratic Model Predictive Control (SLQ-MPC)
 
 - Reference literature for SLQ-MPC
-    [1] [(ICRA2016) Fast nonlinear Model Predictive Control for unified trajectory optimization and tracking](https://ieeexplore.ieee.org/document/7487274)
-    [2] [(ICRA2017) An Efficient Optimal Planning and Control Framework For Quadrupedal Locomotion](https://ieeexplore.ieee.org/document/7989016)
+    - <a name="icra16">[1]</a> [(ICRA2016) Fast nonlinear Model Predictive Control for unified trajectory optimization and tracking](https://ieeexplore.ieee.org/document/7487274)
+    - <a name="icra17">[2]</a> [(ICRA2017) An Efficient Optimal Planning and Control Framework For Quadrupedal Locomotion](https://ieeexplore.ieee.org/document/7989016)
 ---
 
 ## 1. Nonlinear optimal control problem (discrete time)
@@ -804,7 +804,7 @@ Intuitively:
 
 ### C.1 Waypoint Cost $W(x_k,k)$ in SLQ-MPC (discrete time)
 
-In [1] an intermediate (stage) waypoint cost is introduced to penalize the deviation between desired and current state, with penalties concentrated around specific **time steps** where each waypoint is assigned.
+In the literature<sup>[1](#icra16)</sup> an intermediate (stage) waypoint cost is introduced to penalize the deviation between desired and current state, with penalties concentrated around specific **time steps** where each waypoint is assigned.
 
 Recall that the overall finite-horizon cost is
 $$
