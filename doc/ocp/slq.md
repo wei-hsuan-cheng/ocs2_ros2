@@ -1,0 +1,495 @@
+# Sequential Linear Quadratic Model Predictive Control (SLQ-MPC)
+
+- Reference literature for SLQ-MPC
+    - [(ICRA2016) Fast nonlinear Model Predictive Control for unified trajectory optimization and tracking](https://ieeexplore.ieee.org/document/7487274)
+---
+
+## 1. Nonlinear optimal control problem (discrete time)
+
+We start with a **discrete-time** nonlinear system
+$$
+    x_{k+1} = f(x_k, u_k), \qquad k = 0,\dots,N-1,
+$$
+
+and a finite-horizon cost
+
+$$
+    \mathcal{J}
+    = h(x_N) + \sum_{k=0}^{N-1} \ell(x_k, u_k).
+$$
+
+Goal:  
+Find a control sequence $u_0,\dots,u_{N-1}$ that **minimizes** $\mathcal{J}$ subject to the dynamics.
+
+SLQ/iLQR solves this **iteratively** by locally approximating the problem as LQ and using dynamic programming (Bellman).
+
+---
+
+## 2. Nominal trajectory and deviation variables
+
+At iteration $i$, we have a **nominal trajectory**
+$$
+    \{x_k^n, u_k^n\}_{k=0}^{N-1}, \qquad x_0^n \text{ given}.
+$$
+
+We work in **deviation coordinates** around this trajectory:
+$$
+    \delta x_k := x_k - x_k^n,
+    \qquad
+    \delta u_k := u_k - u_k^n.
+$$
+
+We will compute increments $\delta u_k$ (and thus update $u_k^{\text{new}} = u_k^n + \delta u_k$) to reduce the cost.
+
+---
+
+## 3. Linearization of the dynamics
+
+Linearize the nonlinear dynamics around $(x_k^n, u_k^n)$:
+$$
+    f(x_k, u_k) \approx f(x_k^n, u_k^n) 
+    + A_k (x_k - x_k^n) 
+    + B_k (u_k - u_k^n),
+$$
+
+with Jacobians
+$$
+    A_k := \left.\frac{\partial f}{\partial x}\right|_{(x_k^n, u_k^n)},
+    \qquad
+    B_k := \left.\frac{\partial f}{\partial u}\right|_{(x_k^n, u_k^n)}.
+$$
+
+Because the nominal satisfies
+$$
+    x_{k+1}^n = f(x_k^n, u_k^n),
+$$
+
+the constant term cancels, and we obtain the **linearized deviation dynamics**
+
+$$
+    \boxed{
+    \delta x_{k+1} = A_k \delta x_k + B_k \delta u_k.
+    }
+$$
+
+This is a linear time-varying (LTV) system.
+
+---
+
+## 4. Quadratic expansion of the cost
+
+### 4.1 Stage cost expansion
+
+Second-order Taylor expansion of the stage cost $\ell(x_k,u_k)$ at $(x_k^n,u_k^n)$:
+$$
+    \begin{aligned}
+    \ell(x_k,u_k)
+    &\approx \ell_k^n
+    + \ell_{x,k}^\top \delta x_k
+    + \ell_{u,k}^\top \delta u_k \\
+    &\quad
+    + \tfrac12\,\delta x_k^\top L_{xx,k}\,\delta x_k
+    + \delta x_k^\top L_{xu,k}\,\delta u_k
+    + \tfrac12\,\delta u_k^\top L_{uu,k}\,\delta u_k.
+    \end{aligned}
+$$
+
+SLQ (as used in the paper) uses a **Gauss–Newton style approximation** and typically:
+
+- for common tracking costs there is **no explicit $x$-$u$ cross term**, so $L_{xu,k}=0$ exactly, or  
+- simply **drops** $L_{xu,k}$ to keep the structure LQR-like.
+
+So we approximate
+$$
+L_{xu,k} \approx 0,
+$$
+
+giving
+$$
+    \ell(x_k,u_k)
+    \approx
+    \ell_k^n
+    + \ell_{x,k}^\top \delta x_k
+    + \ell_{u,k}^\top \delta u_k
+    + \tfrac12\,\delta x_k^\top L_{xx,k}\,\delta x_k
+    + \tfrac12\,\delta u_k^\top L_{uu,k}\,\delta u_k.
+$$
+
+Define the **LQ coefficients**:
+$$
+    Q_k := L_{xx,k},\quad
+    R_k := L_{uu,k},\quad
+    q_k := \ell_{x,k},\quad
+    r_k := \ell_{u,k}.
+$$
+
+Then
+$$
+    \boxed{
+    \ell(x_k,u_k) \approx
+    \ell_k^n
+    + q_k^\top \delta x_k
+    + r_k^\top \delta u_k
+    + \tfrac12\,\delta x_k^\top Q_k \delta x_k
+    + \tfrac12\,\delta u_k^\top R_k \delta u_k.
+    }
+$$
+
+---
+
+### 4.2 Terminal cost expansion
+
+Similarly, expand the terminal cost $h(x_N)$ at $x_N^n$:
+$$
+    h(x_N) \approx h_N^n
+    + h_{x,N}^\top \delta x_N
+    + \tfrac12\,\delta x_N^\top H_N \delta x_N,
+$$
+
+and define
+$$
+    P_N := H_N, \qquad p_N := h_{x,N}.
+$$
+
+These are the **boundary conditions** for the value-function recursion.
+
+---
+
+## 5. Value function and Bellman equation
+
+### 5.1 Original value function
+
+For the discrete-time problem, the **value function** at time $k$ is
+$$
+V_k(x) := \min_{u_k,\dots,u_{N-1}}
+\left[
+h(x_N) + \sum_{i=k}^{N-1} \ell(x_i,u_i)
+\right],
+$$
+subject to the dynamics starting from $x_k = x$.
+
+The **value function** tells: 
+> If at time $𝑘$ I am in state $x$, what is the *minimum possible future cost* I can achieve, assuming I *act optimally* from now on?”
+
+The **Bellman equation** (principle of optimality) is
+$$
+V_k(x) = \min_{u}
+\big[\,\ell(x,u) + V_{k+1}(f(x,u))\,\big].
+$$
+At the final time $N$:
+$$
+V_N(x) = h(x).
+$$
+
+This **principle of optimality** is crucial:
+> *Whatever the optimal strategy from now to the end is, its first action plus the optimal strategy afterwards must jointly be optimal.*  
+> Mathematically, this is encoded in the Bellman equation.
+
+---
+
+### 5.2 Local quadratic approximation of the value function
+
+We approximate $V_k$ **locally** around the nominal state $x_k^n$.  
+Define $\delta x_k := x_k - x_k^n$ and write a second-order Taylor expansion:
+$$
+    V_k(x_k^n + \delta x_k)
+    \approx
+    s_k + p_k^\top \delta x_k
+    + \tfrac12\,\delta x_k^\top P_k \delta x_k,
+$$
+
+where we define
+$$
+    s_k := V_k(x_k^n),
+    \quad
+    p_k := \left.\frac{\partial V_k}{\partial x}\right|_{x_k^n},
+    \quad
+    P_k := \left.\frac{\partial^2 V_k}{\partial x^2}\right|_{x_k^n}.
+$$
+
+For brevity, we denote this as
+$$
+    \boxed{
+    V_k(\delta x_k) \approx
+    s_k + p_k^\top \delta x_k
+    + \tfrac12\,\delta x_k^\top P_k \delta x_k,
+    }
+$$
+
+where $V_k(\delta x_k) := V_k(x_k^n + \delta x_k)$ for notation simplicity.
+
+---
+
+## 6. Q-function (cost-to-go for one step) and Bellman minimization
+
+To avoid confusion with the matrix $Q_k$, we denote the **dynamic programming Q-function** by:
+$$
+\mathcal{Q}_k(\delta x_k,\delta u_k)
+:= \ell(x_k,u_k) + V_{k+1}(\delta x_{k+1}),
+$$
+with
+$$
+\delta x_{k+1} = A_k \delta x_k + B_k \delta u_k.
+$$
+
+From the Bellman equation:
+$$
+V_k(\delta x_k) = \min_{\delta u_k} \mathcal{Q}_k(\delta x_k,\delta u_k).
+$$
+
+Here we aim to express the Q-function and value function of **next** time step $\mathcal{Q}_k(\delta x_k,\delta u_k), V_{k+1}(\delta x_{k+1})$ in terms of the state and input of **current** time step $\delta x_k, \delta u_k$ .
+
+
+### 6.1 Substitute expansions
+
+Stage cost:
+$$
+    \ell(x_k,u_k) \approx
+    \ell_k^n
+    + q_k^\top \delta x_k
+    + r_k^\top \delta u_k
+    + \tfrac12\,\delta x_k^\top Q_k \delta x_k
+    + \tfrac12\,\delta u_k^\top R_k \delta u_k.
+$$
+
+Next value function (using linearized dynamics):
+$$
+    \begin{aligned}
+    V_{k+1}(\delta x_{k+1})
+    &\approx s_{k+1} + p_{k+1}^\top \delta x_{k+1}
+    + \tfrac12\,\delta x_{k+1}^\top P_{k+1}\delta x_{k+1} \\[0.3em]
+    &= s_{k+1}
+    + p_{k+1}^\top (A_k\delta x_k + B_k\delta u_k) \\
+    &\quad + \tfrac12 (A_k\delta x_k + B_k\delta u_k)^\top
+    P_{k+1}(A_k\delta x_k + B_k\delta u_k).
+    \end{aligned}
+$$
+
+Expand the quadratic term:
+$$
+    \begin{aligned}
+    &\tfrac12 (A_k\delta x_k + B_k\delta u_k)^\top
+    P_{k+1}(A_k\delta x_k + B_k\delta u_k) \\
+    &= \tfrac12\,\delta x_k^\top A_k^\top P_{k+1}A_k \delta x_k
+    + \tfrac12\,\delta u_k^\top B_k^\top P_{k+1}B_k \delta u_k \\
+    &\quad + \delta u_k^\top B_k^\top P_{k+1}A_k \delta x_k.
+    \end{aligned}
+$$
+
+Putting everything into $\mathcal{Q}_k$:
+$$
+\begin{aligned}
+\mathcal{Q}_k(\delta x_k,\delta u_k)
+&= \ell(x_k,u_k) + V_{k+1}(\delta x_{k+1}) \\
+&\approx \text{const.} \\
+&\quad + \delta x_k^\top \big(q_k + A_k^\top p_{k+1}\big) \\
+&\quad + \delta u_k^\top \big(r_k + B_k^\top p_{k+1}\big) \\
+&\quad + \tfrac12\,\delta x_k^\top \big(Q_k + A_k^\top P_{k+1}A_k\big)\delta x_k \\
+&\quad + \tfrac12\,\delta u_k^\top \big(R_k + B_k^\top P_{k+1}B_k\big)\delta u_k \\
+&\quad + \delta u_k^\top \big(B_k^\top P_{k+1}A_k\big)\delta x_k.
+\end{aligned}
+$$
+
+Define:
+$$
+    \begin{aligned}
+    H_k &:= R_k + B_k^\top P_{k+1}B_k, \\
+    G_k &:= B_k^\top P_{k+1}A_k, \\
+    g_k &:= r_k + B_k^\top p_{k+1}, \\
+    \tilde{Q}_k &:= Q_k + A_k^\top P_{k+1}A_k, \\
+    \tilde{q}_k &:= q_k + A_k^\top p_{k+1}.
+    \end{aligned}
+$$
+
+Then the Q-function can be written as
+$$
+    \boxed{
+    \begin{aligned}
+    \mathcal{Q}_k(\delta x_k,\delta u_k)
+    &= \text{const.}
+    + \tfrac12\,\delta u_k^\top H_k\,\delta u_k
+    + \delta u_k^\top (G_k\delta x_k + g_k) \\
+    &\quad + \tfrac12\,\delta x_k^\top \tilde{Q}_k \delta x_k
+    + \delta x_k^\top \tilde{q}_k.
+    \end{aligned}
+    }
+$$
+
+---
+
+## 7. Principle of optimality: minimize the quadratic in $\delta u_k$
+
+By the **Bellman equation**,
+$$
+    V_k(\delta x_k) = \min_{\delta u_k} \mathcal{Q}_k(\delta x_k,\delta u_k).
+$$
+
+We have a **quadratic function in $\delta u_k$**:
+$$
+    \mathcal{Q}_k(\delta x_k,\delta u_k)
+    = \tfrac12\,\delta u_k^\top H_k\delta u_k
+    + \delta u_k^\top (G_k\delta x_k + g_k)
+    + (\text{terms independent of }\delta u_k).
+$$
+
+The **principle of optimality** says:  
+> The optimal control at time $k$ *minimizes the cost-to-go from that point onward*.
+
+So we set the gradient w.r.t. $\delta u_k$ to zero:
+$$
+    \frac{\partial \mathcal{Q}_k}{\partial \delta u_k}
+    = H_k\delta u_k + G_k\delta x_k + g_k = 0.
+$$
+
+Solve for $\delta u_k$:
+$$
+    \boxed{
+    \delta u_k^\star
+    = l_k + K_k \delta x_k,
+    \quad
+    K_k := -H_k^{-1}G_k,
+    \quad
+    l_k := -H_k^{-1}g_k.
+    }
+$$
+
+- $K_k$ is the **feedback gain** (same form as LQR).  
+- $l_k$ is the **feedforward increment** (appears because we have nonzero gradients $r_k$ and $p_{k+1}$, *i.e.*, tracking/nonzero nominal).
+
+This is the **optimal affine control law** for the local LQ subproblem at time $k$.
+
+---
+
+## 8. Backward recursion for the value function coefficients
+
+We now plug the optimal law $\delta u_k^\star$ back into $\mathcal{Q}_k$ and identify the resulting expression as the new value function:
+$$
+    V_k(\delta x_k) = \min_{\delta u_k} \mathcal{Q}_k(\delta x_k,\delta u_k)
+    = \mathcal{Q}_k(\delta x_k,\delta u_k^\star).
+$$
+
+We know that we want
+$$
+    V_k(\delta x_k)
+    \approx s_k + p_k^\top \delta x_k
+    + \tfrac12\,\delta x_k^\top P_k \delta x_k.
+$$
+
+By expanding $\mathcal{Q}_k(\delta x_k,\delta u_k^\star)$ and matching coefficients of $\delta x_k$ and $\delta x_k \delta x_k^\top$, we obtain the **Riccati-like backward recursions**:
+$$
+    \boxed{
+    \begin{aligned}
+    P_k
+    &= \tilde{Q}_k
+    + K_k^\top H_k K_k
+    + K_k^\top G_k
+    + G_k^\top K_k, \\[0.3em]
+    p_k
+    &= \tilde{q}_k
+    + K_k^\top H_k l_k
+    + G_k^\top l_k
+    + K_k^\top g_k.
+    \end{aligned}
+    }
+$$
+
+(Scalar offsets $s_k$ also update but do not affect the policy, so often omitted.)
+
+Together with the boundary conditions $P_N = H_N,\, p_N = h_{x,N}$, this defines a **backward pass**:
+
+1. Start from $k=N$: known $P_N, p_N$.  
+2. For $k=N-1,\dots,0$:
+   - Compute $H_k, G_k, g_k$.  
+   - Compute $K_k, l_k$.  
+   - Update $P_k, p_k$.
+
+This is the SLQ/iLQR **Riccati backward sweep**.
+
+---
+
+## 9. Forward rollout and line search (one SLQ iteration)
+
+One **SLQ (iLQR) iteration** consists of:
+
+1. **Forward rollout (nonlinear)**  
+   Given current control law (nominal) $u_k^n$, simulate the **nonlinear** dynamics
+   $$
+    x_{k+1}^n = f(x_k^n, u_k^n)
+   $$
+   from the current initial state to get the nominal trajectory $\{x_k^n, u_k^n\}$.
+
+2. **Backward pass (LQ subproblem)**  
+   - Linearize dynamics: $A_k,B_k$.  
+   - Quadratize cost: $Q_k,R_k,q_k,r_k$.  
+   - Run the Riccati-like backward recursion to compute $K_k, l_k$.
+
+3. **Policy update via line search**  
+   Using the affine law $\delta u_k = l_k + K_k\delta x_k$, define a **new control sequence**:
+   $$
+    u_k^{\text{new}} = u_k^n + \alpha\, l_k,
+   $$
+   (and keep the feedback $K_k$ for deviations during rollout), with step size $\alpha \in (0,1]$.
+
+   Roll out the nonlinear dynamics with this updated control law, compute the new cost $\mathcal{J}_{\text{new}}$, and use a **line search** on $\alpha$ until the cost decreases sufficiently.
+
+4. Set $\{x_k^n, u_k^n\}$ to the new trajectory and repeat until convergence (or max iterations).
+
+At convergence you obtain a locally optimal **time-varying affine feedback policy**:
+$$
+    u_k(x_k) = u_k^n + l_k + K_k(x_k - x_k^n).
+$$
+
+This is iLQR/SLQ as a solver for the **single-shot** finite-horizon nonlinear OCP.
+
+---
+
+## 10. SLQ-MPC: using iLQR in a receding-horizon loop
+
+SLQ-MPC wraps the SLQ solver inside an **MPC loop**:
+
+1. At real time $t$, measure the current state $x(t)$.  
+   Set it as the initial state $x_0^n$ for the SLQ problem.
+
+2. Define a horizon of $N$ steps (or time $T$) and a cost
+   $$
+        \mathcal{J}
+        = (\tilde{x}_N)^\top H \tilde{x}_N
+        + \sum_{k=0}^{N-1}
+            \big[
+            \tilde{x}_k^\top Q\,\tilde{x}_k
+            + \tilde{u}_k^\top R\,\tilde{u}_k
+            + W(x_k,t_k)
+            \big],
+   $$
+   where $\tilde{x}_k = x_k - x_k^{\text{ref}}$, $\tilde{u}_k = u_k - u_k^{\text{ref}}$, and $W$ may include waypoint penalties.
+
+3. **Initialize the control law**:
+   - Use an LQR/PD law or the solution from the **previous MPC step** as the initial $\{u_k^n\}$.
+
+4. **Run a few SLQ iterations**:
+   - Forward rollout, linearization, quadratization.  
+   - Backward pass using Bellman (Riccati recursion, optimal affine increments $\delta u_k$).  
+   - Line search update of $u_k^n$.
+
+5. **Apply only the first control**:
+   $$
+   u_{\text{applied}}(t) = u_0^{\star}
+   $$
+   (possibly plus feedback $K_0(x(t)-x_0^n)$).
+
+6. **Shift the horizon** and repeat at the next time step:
+   - New state measurement $x(t+\Delta t)$.  
+   - Use previous solution shifted in time as a warm start for $\{x_k^n,u_k^n\}$.  
+   - Run SLQ again (usually only a few iterations needed if warm-started).
+
+Additionally, as in the paper, you can:
+
+- Use an **infinite-horizon LQR** around the goal state to compute a terminal cost matrix $H = P_{\infty}$, which serves as a good terminal cost for SLQ.
+- This approximates the cost-to-go **beyond** the MPC horizon and improves stability.
+
+Thus:
+
+- **Inside each MPC step**: SLQ/iLQR uses **Bellman’s principle** and local quadratic approximations to compute a locally optimal affine law over the finite horizon.
+- **Across time**: MPC uses the first control of that law, moves the horizon, and recomputes, leading to an online receding-horizon nonlinear controller.
+
+---
