@@ -473,7 +473,7 @@ SLQ-MPC wraps the SLQ solver inside an **MPC loop**:
 
 5. **Apply only the first control**:
    $$
-   u_{\text{applied}}(t) = u_0^{\star}
+    u_{\text{applied}}(t) = u_0^{\star}
    $$
    (possibly plus feedback $K_0(x(t)-x_0^n)$).
 
@@ -493,3 +493,170 @@ Thus:
 - **Across time**: MPC uses the first control of that law, moves the horizon, and recomputes, leading to an online receding-horizon nonlinear controller.
 
 ---
+
+## 11. Line search and the role of feedback in SLQ/iLQR
+
+You already have the local optimal **incremental** law from the backward pass:
+$$
+    \delta u_k^\star = l_k + K_k\,\delta x_k,
+    \qquad \delta x_k = x_k - x_k^n.
+$$
+
+This is the solution of the **local** LQ subproblem (linearized dynamics + quadratized cost). Now we need to use it to update the **nominal control sequence** and generate a new trajectory on the **true nonlinear system**.
+
+There are two closely-related notions here:
+
+1. **Feedback vs feedforward**  
+2. **Line search in the feedforward direction $\alpha$**
+
+---
+
+### 11.1 Where does the feedback term go?
+
+At iteration $i$, you have:
+
+- Nominal trajectory: $\{x_k^n, u_k^n\}$
+- New increments: $\delta u_k^\star = l_k + K_k\,\delta x_k$
+
+When you **roll out** the new candidate trajectory on the nonlinear system, you don’t know in advance what the new state $x_k$ will be (because the dynamics are nonlinear). So you **use the policy** during the forward simulation:
+
+1. Start from the actual initial state:
+   $$
+    x_0^{\text{cand}} = x_0^{\text{current}}.
+   $$
+2. At each time step $k$ of the rollout:
+
+   - Compute the state deviation:
+     $$
+        \delta x_k = x_k^{\text{cand}} - x_k^n.
+     $$
+   - Compute the control *increment* using the affine law:
+     $$
+        \delta u_k = l_k + K_k\,\delta x_k.
+     $$
+   - Update the control:
+     $$
+        u_k^{\text{cand}} = u_k^n + \delta u_k.
+     $$
+   - Apply $u_k^{\text{cand}}$ to the **nonlinear** dynamics and get
+     $$
+        x_{k+1}^{\text{cand}} = f\big(x_k^{\text{cand}}, u_k^{\text{cand}}\big).
+     $$
+
+So in full, **with no line search**, the candidate control during rollout is:
+$$
+    u_k^{\text{cand}} = u_k^n + l_k + K_k \big(x_k^{\text{cand}} - x_k^n\big).
+$$
+
+> 🔹 The **feedback term** $K_k(x_k^{\text{cand}} - x_k^n)$ is *always present* in the forward rollout.  
+> 🔹 The SLQ backward pass gives you both $l_k$ and $K_k$; you use the full law during rollout.
+
+When we later introduce the step size $\alpha$, **we only scale the feedforward part $l_k$**, not the feedback:
+
+$$
+    u_k^{\text{cand}}(\alpha)
+    = u_k^n + \alpha\, l_k + K_k\big(x_k^{\text{cand}}(\alpha) - x_k^n\big).
+$$
+
+- $K_k$ stays unchanged (it’s the local stabilizing feedback for the LQ subproblem).
+- $\alpha$ scales the **step size** in the direction of the feedforward increment $l_k$.
+
+---
+
+### 11.2 What is $\alpha$ and what is “line search”?
+
+After the backward pass, you have a **search direction** in control space, given by the sequence $\{l_k\}_{k=0}^{N-1}$:
+
+- Think of all $u_k$ stacked into a big vector $u$,
+- All $l_k$ stacked into a big vector $l$,
+- Then the new control candidate is
+  $$
+    u^{\text{cand}}(\alpha) = u^n + \alpha\,l \quad(\text{plus feedback corrections in rollout}).
+  $$
+
+This is exactly the idea of **line search** in optimization:
+
+> We move along a direction $l$ from our current point $u^n$, and we choose how far to move by tuning the scalar step size $\alpha > 0$.
+
+Concretely:
+
+1. You start with $\alpha = 1$ (a “full” step).
+2. You perform a forward rollout using
+   $$
+    u_k^{\text{cand}}(\alpha)
+    = u_k^n + \alpha\, l_k + K_k\big(x_k^{\text{cand}}(\alpha) - x_k^n\big).
+   $$
+3. You compute the new cost $\mathcal{J}(\alpha)$ by summing the stage and terminal costs along the candidate trajectory.
+4. If $\mathcal{J}(\alpha) < \mathcal{J}_{\text{old}}$ with sufficient decrease, **accept** this $\alpha$.
+5. If not, **reduce** $\alpha$ (*e.g.* $\alpha \leftarrow \beta \alpha$ with $\beta \in (0,1)$, such as $\beta=0.5$) and try again.
+
+This is called a **backtracking line search**. Formally:
+
+- We are minimizing the scalar function
+  $$
+    \phi(\alpha) := \mathcal{J}\big(u^n + \alpha\,l\big)
+  $$
+  (with feedback and dynamics included in how we evaluate $\mathcal{J}$).
+- We want an $\alpha$ that gives **actual decrease in cost** for the **true nonlinear problem**, not just the local quadratic approximation.
+
+---
+
+### 11.3 Why not always $\alpha = 1$?
+
+Intuitively:
+
+- The backward pass (Riccati step) gives an **optimal step for the quadratic approximation** of the cost and linearized dynamics.  
+- But the **true problem is nonlinear**; the quadratic approximation may be poor if we step too far from the nominal trajectory.
+- A full step $\alpha = 1$ can **overshoot**: the new rollout might increase the cost or even destabilize the system.
+
+So:
+
+- If the model is very nonlinear or the initial guess is far from optimal, $\alpha = 1$ may be too aggressive.
+- A smaller $\alpha$ takes a **shorter step**, staying closer to the region where the local linear/quadratic approximation is valid.
+
+In optimization language:
+
+> The Riccati backward pass gives you a **descent direction** $l$.
+> The line search on $\alpha$ ensures you get a **descent step** for the *true* cost.
+
+In practice, people often try a sequence like:
+$$
+\alpha \in \{1,\, 0.5,\, 0.25,\, 0.1,\, 0.05,\dots\}
+$$
+and pick the **largest** $\alpha$ that produces a sufficient cost decrease.
+
+---
+
+### 11.4 Why only scale $l_k$ and not $K_k$?
+
+- $K_k$ is chosen to be the **optimal feedback** for the local LQ approximation. It stabilizes deviations around the nominal and shapes how the state trajectory responds to disturbances during the rollout.
+- $l_k$ is the **feedforward step** that shifts the nominal control in the direction of lower cost.
+
+Scaling both $l_k$ and $K_k$ would break the carefully derived LQ structure. The standard (and widely used) iLQR/SLQ practice is:
+
+- **Keep $K_k$** as is (full feedback),
+- **Scale only $l_k$** by $\alpha$.
+
+So the update is:
+
+- Incremental law from backward pass:
+  $$
+    \delta u_k^\star = l_k + K_k\,\delta x_k.
+  $$
+- Line search candidate during rollout:
+  $$
+    u_k^{\text{cand}}(\alpha)
+    = u_k^n + \alpha\, l_k + K_k\big(x_k^{\text{cand}}(\alpha) - x_k^n\big).
+  $$
+
+---
+
+### 11.5 Summary
+
+- The **feedback term** $K_k(x_k - x_k^n)$ is always used during the forward rollout to stabilize and correct the trajectory. It is **not** scaled by $\alpha$.
+- The **feedforward term** $l_k$ is the “direction” in control space given by the local LQ solution; we scale it by a step size $\alpha$.
+- **Line search** = choose $\alpha$ by trying $\alpha=1,0.5,0.25,\dots$ and picking the largest one that actually **reduces the true cost** $\mathcal{J}$ when the nonlinear system is rolled out.
+- This is how SLQ/iLQR combines:
+  - a **local quadratic optimization** step (backward pass)  
+  - with a **global cost check** on the true nonlinear problem (line search),  
+  ensuring stable, monotonic convergence in practice.
