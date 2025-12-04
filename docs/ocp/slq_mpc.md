@@ -490,6 +490,7 @@ Thus:
 
 ---
 
+## 11. Appendices
 
 <details>
 <summary>🔽 Appendix A: Line search and the role of feedback in SLQ/iLQR</summary>
@@ -802,7 +803,7 @@ Intuitively:
 <details>
 <summary>🔽 Appendix C: Waypoint Cost in SLQ-MPC</summary>
 
-### C.1 Waypoint Cost $W(x_k,k)$ in SLQ-MPC (discrete time)
+### C.1 Waypoint Cost $W(x_k,k)$ in SLQ-MPC
 
 In the literature<sup>[1](#icra16)</sup> an intermediate (stage) waypoint cost is introduced to penalize the deviation between desired and current state, with penalties concentrated around specific **time steps** where each waypoint is assigned.
 
