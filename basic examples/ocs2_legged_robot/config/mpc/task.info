@@ -82,7 +82,7 @@ ipm
 ; DDP settings
 ddp
 {
-  algorithm                       SLQ
+  algorithm                       SLQ // SLQ; ILQR; SQP;
 
   nThreads                        3
   threadPriority                  50
@@ -138,8 +138,8 @@ mpc
 
   debugPrint                      false
 
-  mpcDesiredFrequency             50  ; [Hz]
-  mrtDesiredFrequency             400 ; [Hz]
+  mpcDesiredFrequency              -1 ; [Hz]
+  mrtDesiredFrequency            1000 ; [Hz]
 }
 
 initialState
