@@ -8,7 +8,7 @@ from ament_index_python.packages import get_package_share_directory
 
 
 def generate_launch_description():
-    rviz_config_file = get_package_share_directory('ocs2_quadruped_interface') + "/config/config.rviz"
+    rviz_config_file = get_package_share_directory('ocs2_quadruped_interface') + "/config/anymal_c.rviz"
     ld = launch.LaunchDescription([
         launch.actions.DeclareLaunchArgument(
             name='description_name',
