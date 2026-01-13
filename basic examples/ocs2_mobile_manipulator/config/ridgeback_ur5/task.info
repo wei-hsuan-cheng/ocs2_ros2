@@ -80,7 +80,7 @@ mpc
   
   debugPrint                      false
 
-  mpcDesiredFrequency             -1.0   ; [Hz] // 100.0; -1.0 (negative for best effort policy rollout!)
+  mpcDesiredFrequency              -1.0   ; [Hz] // 100.0; -1.0 (negative for best effort policy rollout!)
   mrtDesiredFrequency             500.0   ; [Hz] // 500.0
 }
 
