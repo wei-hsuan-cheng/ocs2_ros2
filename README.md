@@ -190,11 +190,14 @@ https://github.com/user-attachments/assets/aed3173f-a6e6-4499-ae8c-d101bedc5222
 
     https://github.com/user-attachments/assets/c71f6123-fa3a-4b72-a60f-5509b8c25413
 
-* run Kinova Jaco2
+* run Kinova
     ```bash
     source ~/ros2_ws/install/setup.bash
+    # Jaco2
     ros2 launch ocs2_mobile_manipulator_ros manipulator_kinova_j2n6.launch.py
     ros2 launch ocs2_mobile_manipulator_ros manipulator_kinova_j2n7.launch.py
+    # Gen3 Lite
+    ros2 launch ocs2_mobile_manipulator_ros manipulator_kinova_gen3_lite.launch.py
     ```
 * run Franka Panda
     ```bash
