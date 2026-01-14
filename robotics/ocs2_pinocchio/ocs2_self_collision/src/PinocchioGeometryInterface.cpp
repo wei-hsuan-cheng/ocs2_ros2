@@ -88,9 +88,29 @@ namespace ocs2
         updateGeometryPlacements(pinocchioInterface.getModel(),
                                  pinocchioInterface.getData(),
                                  *geometryModelPtr_, geometryData);
-        pinocchio::computeDistances(*geometryModelPtr_, geometryData);
 
-        return std::move(geometryData.distanceResults);
+        std::vector<hpp::fcl::DistanceResult> results;
+        results.reserve(geometryModelPtr_->collisionPairs.size());
+
+        hpp::fcl::DistanceRequest request;
+        request.enable_nearest_points = true;
+
+        for (const auto& pair : geometryModelPtr_->collisionPairs)
+        {
+            const auto& geometryObject1 = geometryModelPtr_->geometryObjects[pair.first];
+            const auto& geometryObject2 = geometryModelPtr_->geometryObjects[pair.second];
+
+            const auto transform1 = pinocchio::toFclTransform3f(geometryData.oMg[pair.first]);
+            const auto transform2 = pinocchio::toFclTransform3f(geometryData.oMg[pair.second]);
+
+            hpp::fcl::DistanceResult result;
+            hpp::fcl::distance(geometryObject1.geometry.get(), transform1,
+                               geometryObject2.geometry.get(), transform2,
+                               request, result);
+            results.push_back(std::move(result));
+        }
+
+        return results;
     }
 
 
