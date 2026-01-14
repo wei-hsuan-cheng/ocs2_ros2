@@ -27,3 +27,7 @@ mpc/ocs2_ddp/test/ddp_test_generated/
 .vscode/
 runs/
 *.vscode
+
+# macOS
+.DS_Store
+**/.DS_Store
