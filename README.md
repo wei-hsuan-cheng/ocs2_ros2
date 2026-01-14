@@ -82,6 +82,7 @@ Tested system and ROS 2 version:
 * `rosdep`
     ```bash
     cd ~/ros2_ws
+    rosdep update
     rosdep install --from-paths src --ignore-src -r -y
     ```
 
