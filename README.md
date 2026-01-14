@@ -181,8 +181,13 @@ https://github.com/user-attachments/assets/aed3173f-a6e6-4499-ae8c-d101bedc5222
 * build
     ```bash
     cd ~/ros2_ws
-    colcon build --packages-up-to ocs2_mobile_manipulator_ros --symlink-install
+    colcon build --packages-up-to \
+        ocs2_mobile_manipulator_ros \
+        --parallel-workers 2 --executor sequential\
+        --symlink-install \
+        && . install/setup.bash
     ```
+
 * run Mabi-Mobile
     ```bash
     source ~/ros2_ws/install/setup.bash
