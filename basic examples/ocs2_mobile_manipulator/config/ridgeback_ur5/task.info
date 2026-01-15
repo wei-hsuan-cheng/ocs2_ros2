@@ -81,11 +81,10 @@ mpc
   debugPrint                      false
 
   mpcDesiredFrequency              -1.0   ; [Hz] // 100.0; -1.0 (negative for best effort policy rollout!)
-  mrtDesiredFrequency             500.0   ; [Hz] // 500.0
+  mrtDesiredFrequency             250.0   ; [Hz] // 500.0
 }
 
-
-; SQP settings (multiple shooting)
+; Multiple_Shooting SQP settings
 sqp
 {
   nThreads                              3
@@ -100,15 +99,16 @@ sqp
   inequalityConstraintDelta             1e-6
 
   projectStateInputEqualityConstraints  true
-  useFeedbackPolicy                     true
-  integratorType                        RK2
-
   printSolverStatistics                 true
   printSolverStatus                     false
   printLinesearch                       false
 
+  useFeedbackPolicy                     true
+  integratorType                        RK2
+
   logFilePath                           /tmp/ocs2/sqp_log/
 }
+
 ; initial state
 initialState
 {
@@ -225,6 +225,33 @@ finalEndEffector
 }
 
 selfCollision
+{ 
+  ; activate self-collision constraint
+  activate  true // false; true
+
+  ; Self Collision raw object pairs
+  collisionObjectPairs
+  {
+    //[0] "5, 8"
+    [0] "5, 9"
+    //[2] "5, 10"
+    //[3] "5, 11"
+    //[4] "5, 12"
+  }
+
+  ; minimum distance allowed between the pairs
+  minimumDistance  0.1
+
+  ; relaxed log barrier mu
+  mu     0.01
+
+  ; relaxed log barrier delta
+  delta  0.001
+  
+  ; TODO: Replace the collision meshes of the arm with primitive shapes.
+}
+
+selfCollision_old
 { 
   ; activate self-collision constraint
   activate  true // false; true

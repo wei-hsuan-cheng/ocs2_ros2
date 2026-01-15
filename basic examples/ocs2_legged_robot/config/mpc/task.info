@@ -82,7 +82,7 @@ ipm
 ; DDP settings
 ddp
 {
-  algorithm                       SLQ // SLQ; ILQR; SQP;
+  algorithm                       SLQ // SLQ, ILQR
 
   nThreads                        3
   threadPriority                  50
