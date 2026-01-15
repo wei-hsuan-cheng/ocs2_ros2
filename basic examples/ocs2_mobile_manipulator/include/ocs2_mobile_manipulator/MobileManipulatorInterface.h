@@ -34,6 +34,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <ocs2_core/initialization/Initializer.h>
 #include <ocs2_ddp/DDP_Settings.h>
 #include <ocs2_mpc/MPC_Settings.h>
+#include <ocs2_sqp/SqpSettings.h>
 #include <ocs2_oc/rollout/TimeTriggeredRollout.h>
 #include <ocs2_oc/synchronized_module/ReferenceManager.h>
 #include <ocs2_robotic_tools/common/RobotInterface.h>
@@ -68,6 +69,8 @@ namespace ocs2::mobile_manipulator
         ddp::Settings& ddpSettings() { return ddpSettings_; }
 
         mpc::Settings& mpcSettings() { return mpcSettings_; }
+
+        sqp::Settings& sqpSettings() { return sqpSettings_; }
 
         const OptimalControlProblem& getOptimalControlProblem() const override { return problem_; }
 
@@ -113,6 +116,7 @@ namespace ocs2::mobile_manipulator
 
         ddp::Settings ddpSettings_;
         mpc::Settings mpcSettings_;
+        sqp::Settings sqpSettings_;
 
         OptimalControlProblem problem_;
         std::shared_ptr<ReferenceManager> referenceManagerPtr_;

@@ -1,7 +1,7 @@
 import os
 from launch import LaunchDescription
 from launch_ros.actions import Node
-from launch.substitutions import LaunchConfiguration
+from launch.substitutions import LaunchConfiguration, PythonExpression
 from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.conditions import IfCondition, UnlessCondition
@@ -11,10 +11,11 @@ from ament_index_python.packages import get_package_share_directory
 def generate_launch_description():
     # Mirror mobile_manipulator_marker.launch.py arguments
     rviz_arg = DeclareLaunchArgument('rviz', default_value='true')
-    urdf_arg = DeclareLaunchArgument('urdfFile', default_value='/tmp/ocs2_auto_generated')
-    task_arg = DeclareLaunchArgument('taskFile', default_value='/tmp/ocs2_auto_generated')
+    urdf_arg = DeclareLaunchArgument('urdfFile', default_value='')
+    task_arg = DeclareLaunchArgument('taskFile', default_value='')
     lib_arg = DeclareLaunchArgument('libFolder', default_value='/tmp/ocs2_auto_generated')
     debug_arg = DeclareLaunchArgument('debug', default_value='false')
+    solver_arg = DeclareLaunchArgument('solver', default_value='ddp', description='MPC solver: ddp or sqp')
     enable_joystick_arg = DeclareLaunchArgument('enableJoystick', default_value='false')
     enable_auto_pos_arg = DeclareLaunchArgument('enableAutoPosition', default_value='false')
 
@@ -39,13 +40,25 @@ def generate_launch_description():
             'rviz': LaunchConfiguration('rviz')
         }.items()
     )
-
-    # MPC node (same as marker)
-    mpc_node = Node(
+    # MPC nodes (DDP / SQP)
+    ddp_mpc_node = Node(
         package='ocs2_mobile_manipulator_ros',
         executable='mobile_manipulator_mpc_node',
         name='mobile_manipulator_mpc',
-        condition=UnlessCondition(LaunchConfiguration('debug')),
+        condition=IfCondition(PythonExpression(["'", LaunchConfiguration('debug'), "' == 'false' and '", LaunchConfiguration('solver'), "' != 'sqp'"])),
+        output='screen',
+        parameters=[
+            {'taskFile': LaunchConfiguration('taskFile')},
+            {'urdfFile': LaunchConfiguration('urdfFile')},
+            {'libFolder': LaunchConfiguration('libFolder')},
+        ]
+    )
+
+    sqp_mpc_node = Node(
+        package='ocs2_mobile_manipulator_ros',
+        executable='mobile_manipulator_sqp_mpc_node',
+        name='mobile_manipulator_mpc',
+        condition=IfCondition(PythonExpression(["'", LaunchConfiguration('debug'), "' == 'false' and '", LaunchConfiguration('solver'), "' == 'sqp'"])),
         output='screen',
         parameters=[
             {'taskFile': LaunchConfiguration('taskFile')},
@@ -96,6 +109,7 @@ def generate_launch_description():
         task_arg,
         lib_arg,
         debug_arg,
+        solver_arg,
         enable_joystick_arg,
         enable_auto_pos_arg,
         publish_rate_arg,
@@ -107,7 +121,8 @@ def generate_launch_description():
         axis_y_arg,
         axis_z_arg,
         visualize_include,
-        mpc_node,
+        ddp_mpc_node,
+        sqp_mpc_node,
         dummy_mrt_node,
         traj_target_node,
     ])

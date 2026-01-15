@@ -11,11 +11,13 @@ option(BUILD_TESTING "Build the testing tree." OFF)
 set(dependencies
         ocs2_ddp
         ocs2_self_collision
+        ocs2_sqp
 )
 
 find_package(ament_cmake REQUIRED)
 find_package(ocs2_ddp REQUIRED)
 find_package(ocs2_self_collision REQUIRED)
+find_package(ocs2_sqp REQUIRED)
 
 ###########
 ## Build ##

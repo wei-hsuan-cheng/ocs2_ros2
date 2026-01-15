@@ -2,7 +2,7 @@
 import os
 import re
 import shutil
-from launch.substitutions import LaunchConfiguration
+from launch.substitutions import LaunchConfiguration, PythonExpression
 from launch import LaunchDescription
 from launch_ros.actions import Node
 from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
@@ -69,12 +69,17 @@ def generate_launch_description():
             default_value='false'
         ),
         DeclareLaunchArgument(
+            name='solver',
+            default_value='ddp',
+            description='MPC solver: ddp or sqp'
+        ),
+        DeclareLaunchArgument(
             name='urdfFile',
-            default_value='/tmp/ocs2_auto_generated'
+            default_value=''
         ),
         DeclareLaunchArgument(
             name='taskFile',
-            default_value='/tmp/ocs2_auto_generated'
+            default_value=''
         ),
         DeclareLaunchArgument(
             name='libFolder',
@@ -90,7 +95,7 @@ def generate_launch_description():
             default_value='false',
             description='Whether to enable automatic marker position updates'
         ),
-        
+
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(
                 os.path.join(get_package_share_directory(
@@ -105,7 +110,25 @@ def generate_launch_description():
             package='ocs2_mobile_manipulator_ros',
             executable='mobile_manipulator_mpc_node',
             name='mobile_manipulator_mpc',
-            condition=UnlessCondition(LaunchConfiguration("debug")),
+            condition=IfCondition(PythonExpression(["'", LaunchConfiguration('debug'), "' == 'false' and '", LaunchConfiguration('solver'), "' != 'sqp'"])),
+            output='screen',
+            parameters=[
+                {
+                    'taskFile': LaunchConfiguration('taskFile')
+                },
+                {
+                    'urdfFile': LaunchConfiguration('urdfFile')
+                },
+                {
+                    'libFolder': LaunchConfiguration('libFolder')
+                }
+            ]
+        ),
+        Node(
+            package='ocs2_mobile_manipulator_ros',
+            executable='mobile_manipulator_sqp_mpc_node',
+            name='mobile_manipulator_mpc',
+            condition=IfCondition(PythonExpression(["'", LaunchConfiguration('debug'), "' == 'false' and '", LaunchConfiguration('solver'), "' == 'sqp'"])),
             output='screen',
             parameters=[
                 {

@@ -14,6 +14,7 @@
 
     <depend>ocs2_ddp</depend>
     <depend>ocs2_self_collision</depend>
+    <depend>ocs2_sqp</depend>
 
     <test_depend>ament_cmake_gtest</test_depend>
     <test_depend>ocs2_robotic_assets</test_depend>

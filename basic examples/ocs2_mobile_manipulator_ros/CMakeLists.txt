@@ -12,6 +12,7 @@ set(dependencies
         robot_state_publisher
         ocs2_self_collision_visualization
         ocs2_mobile_manipulator
+        ocs2_sqp
         ocs2_msgs
         std_srvs
 )
@@ -23,6 +24,7 @@ find_package(kdl_parser REQUIRED)
 find_package(robot_state_publisher REQUIRED)
 find_package(ocs2_self_collision_visualization REQUIRED)
 find_package(ocs2_mobile_manipulator REQUIRED)
+find_package(ocs2_sqp REQUIRED)
 find_package(ocs2_msgs REQUIRED)
 find_package(std_srvs REQUIRED)
 
@@ -42,6 +44,12 @@ ament_target_dependencies(${PROJECT_NAME} ${dependencies})
 
 # MPC node
 add_executable(mobile_manipulator_mpc_node src/MobileManipulatorMpcNode.cpp)
+# SQP MPC node
+add_executable(mobile_manipulator_sqp_mpc_node src/MobileManipulatorSqpMpcNode.cpp)
+target_link_libraries(mobile_manipulator_sqp_mpc_node ${PROJECT_NAME})
+ament_target_dependencies(mobile_manipulator_sqp_mpc_node ${dependencies})
+
+
 target_link_libraries(mobile_manipulator_mpc_node ${PROJECT_NAME})
 ament_target_dependencies(mobile_manipulator_mpc_node ${dependencies})
 
@@ -76,6 +84,7 @@ install(DIRECTORY include DESTINATION include/${PROJECT_NAME})
 install(
         TARGETS
         mobile_manipulator_mpc_node
+        mobile_manipulator_sqp_mpc_node
         mobile_manipulator_dummy_mrt_node
         mobile_manipulator_marker_target
         mobile_manipulator_twist_target

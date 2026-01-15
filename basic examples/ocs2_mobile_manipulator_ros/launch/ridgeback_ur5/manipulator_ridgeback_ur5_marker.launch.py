@@ -17,6 +17,10 @@ def generate_launch_description():
             default_value='false'
         ),
         launch.actions.DeclareLaunchArgument(
+            name='solver',
+            default_value='ddp'
+        ),
+        launch.actions.DeclareLaunchArgument(
             name='urdfFile',
             default_value=get_package_share_directory(
                 'ocs2_robotic_assets') + '/resources/mobile_manipulator/ridgeback_ur5/urdf/ridgeback_ur5.urdf'
@@ -47,6 +51,7 @@ def generate_launch_description():
             launch_arguments={
                 'rviz': launch.substitutions.LaunchConfiguration('rviz'),
                 'debug': launch.substitutions.LaunchConfiguration('debug'),
+                'solver': launch.substitutions.LaunchConfiguration('solver'),
                 'urdfFile': launch.substitutions.LaunchConfiguration('urdfFile'),
                 'taskFile': launch.substitutions.LaunchConfiguration('taskFile'),
                 'libFolder': launch.substitutions.LaunchConfiguration('libFolder'),

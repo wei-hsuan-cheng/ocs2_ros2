@@ -170,6 +170,7 @@ namespace ocs2::mobile_manipulator
         // DDP-MPC settings
         ddpSettings_ = ddp::loadSettings(taskFile, "ddp");
         mpcSettings_ = mpc::loadSettings(taskFile, "mpc");
+        sqpSettings_ = sqp::loadSettings(taskFile, "sqp", false);
 
         // Reference Manager
         referenceManagerPtr_ = std::make_shared<ReferenceManager>();

@@ -18,6 +18,7 @@ def generate_launch_description():
 
     rviz_arg = DeclareLaunchArgument('rviz', default_value='true')
     debug_arg = DeclareLaunchArgument('debug', default_value='false')
+    solver_arg = DeclareLaunchArgument('solver', default_value='ddp')
     urdf_arg = DeclareLaunchArgument('urdfFile', default_value=urdf_default)
     task_arg = DeclareLaunchArgument('taskFile', default_value=task_default)
     lib_arg = DeclareLaunchArgument('libFolder', default_value=lib_default)
@@ -42,6 +43,7 @@ def generate_launch_description():
         launch_arguments={
             'rviz': LaunchConfiguration('rviz'),
             'debug': LaunchConfiguration('debug'),
+            'solver': LaunchConfiguration('solver'),
             'urdfFile': LaunchConfiguration('urdfFile'),
             'taskFile': LaunchConfiguration('taskFile'),
             'libFolder': LaunchConfiguration('libFolder'),
@@ -61,6 +63,7 @@ def generate_launch_description():
     return launch.LaunchDescription([
         rviz_arg,
         debug_arg,
+        solver_arg,
         urdf_arg,
         task_arg,
         lib_arg,

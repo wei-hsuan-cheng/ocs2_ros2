@@ -84,6 +84,31 @@ mpc
   mrtDesiredFrequency             500.0   ; [Hz] // 500.0
 }
 
+
+; SQP settings (multiple shooting)
+sqp
+{
+  nThreads                              3
+  dt                                    0.01
+  sqpIteration                          1
+  deltaTol                              1e-4
+  costTol                               1e-4
+
+  g_max                                 1e6
+  g_min                                 1e-6
+  inequalityConstraintMu                0.0
+  inequalityConstraintDelta             1e-6
+
+  projectStateInputEqualityConstraints  true
+  useFeedbackPolicy                     true
+  integratorType                        RK2
+
+  printSolverStatistics                 true
+  printSolverStatus                     false
+  printLinesearch                       false
+
+  logFilePath                           /tmp/ocs2/sqp_log/
+}
 ; initial state
 initialState
 {
