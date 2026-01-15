@@ -7,6 +7,7 @@ from ament_index_python.packages import get_package_share_directory
 
 
 def generate_launch_description():
+    prefix = os.getenv('LAUNCH_PREFIX', '')
     rviz_config_file = get_package_share_directory('ocs2_legged_robot_ros') + "/rviz/legged_robot.rviz"
     ld = launch.LaunchDescription([
         launch.actions.DeclareLaunchArgument(
@@ -85,7 +86,7 @@ def generate_launch_description():
             executable='legged_robot_dummy',
             name='legged_robot_dummy',
             output='screen',
-            prefix="gnome-terminal --",
+            prefix=prefix,
             parameters=[
                 {
                     'multiplot': launch.substitutions.LaunchConfiguration('multiplot')
@@ -104,42 +105,6 @@ def generate_launch_description():
                 }
             ]
         ),
-        launch_ros.actions.Node(
-            package='ocs2_legged_robot_ros',
-            executable='legged_robot_target',
-            name='legged_robot_target',
-            output='screen',
-            prefix="gnome-terminal --",
-            parameters=[
-                {
-                    'referenceFile': launch.substitutions.LaunchConfiguration('referenceFile')
-                }
-            ]
-        ),
-        launch_ros.actions.Node(
-            package='ocs2_legged_robot_ros',
-            executable='legged_robot_gait_command',
-            name='legged_robot_gait_command',
-            output='screen',
-            prefix="gnome-terminal --",
-            parameters=[
-                {
-                    'multiplot': launch.substitutions.LaunchConfiguration('multiplot')
-                },
-                {
-                    'taskFile': launch.substitutions.LaunchConfiguration('taskFile')
-                },
-                {
-                    'referenceFile': launch.substitutions.LaunchConfiguration('referenceFile')
-                },
-                {
-                    'urdfFile': launch.substitutions.LaunchConfiguration('urdfFile')
-                },
-                {
-                    'gaitCommandFile': launch.substitutions.LaunchConfiguration('gaitCommandFile')
-                }
-            ]
-        )
     ])
     return ld
 

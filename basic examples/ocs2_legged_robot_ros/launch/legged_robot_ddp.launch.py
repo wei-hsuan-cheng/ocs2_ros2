@@ -17,21 +17,9 @@ def is_wsl():
 
 def generate_launch_description():
 
-    if shutil.which("terminator"):
-        prefix = "terminator --new-tab -x"
-        print("Terminator is installed, use terminator as terminal")
-    elif is_wsl() and shutil.which("xterm"):
-        prefix = "xterm -e"
-        print("Current system is WSL, use xterm as terminal")
-    elif shutil.which("gnome-terminal"):
-        prefix = "gnome-terminal --"
-        print("Using gnome-terminal as terminal")
-    elif shutil.which("xterm"):
-        prefix = "xterm -e"
-        print("Using xterm as terminal")
-    else:
-        prefix = ""
-        print("No supported GUI terminal detected, running nodes in current shell")
+    # Don’t wrap nodes in a GUI terminal by default (breaks in containers/VNC).
+    # If you really want to run nodes in a separate terminal, set LAUNCH_PREFIX in your environment.
+    prefix = ""
 
 
     return LaunchDescription([
@@ -95,20 +83,6 @@ def generate_launch_description():
                 'referenceFile': LaunchConfiguration('referenceFile'),
                 'taskFile': LaunchConfiguration('taskFile'),
                 'urdfFile': LaunchConfiguration('urdfFile'),
-            }.items(),
-        ),
-        IncludeLaunchDescription(
-            PythonLaunchDescriptionSource(
-                [ThisLaunchFileDir(), '/gait_command.launch.py']),
-            launch_arguments={
-                'gaitCommandFile': LaunchConfiguration('gaitCommandFile'),
-            }.items(),
-        ),
-        IncludeLaunchDescription(
-            PythonLaunchDescriptionSource(
-                [ThisLaunchFileDir(), '/robot_target.launch.py']),
-            launch_arguments={
-                'referenceFile': LaunchConfiguration('referenceFile'),
             }.items(),
         ),
     ])
