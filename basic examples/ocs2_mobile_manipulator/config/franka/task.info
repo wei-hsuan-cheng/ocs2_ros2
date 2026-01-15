@@ -11,7 +11,7 @@ model_information {
   ; base frame of the robot (from URDF)
   baseFrame                       "root"
   ; end-effector frame of the robot (from URDF)
-  eeFrame                         "panda_hand_tcp"
+  eeFrame                         "panda_hand_tcp"; "panda_hand_tcp", "panda_hand"
 }
 
 model_settings

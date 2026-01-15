@@ -62,15 +62,15 @@ def generate_launch_description():
         ),
         DeclareLaunchArgument(
             name='urdfFile',
-            default_value=''
+            default_value='/tmp/ocs2_auto_generated'
         ),
         DeclareLaunchArgument(
             name='taskFile',
-            default_value=''
+            default_value='/tmp/ocs2_auto_generated'
         ),
         DeclareLaunchArgument(
             name='libFolder',
-            default_value=''
+            default_value='/tmp/ocs2_auto_generated'
         ),
         DeclareLaunchArgument(
             name='debug',

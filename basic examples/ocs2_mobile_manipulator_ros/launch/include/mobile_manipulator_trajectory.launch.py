@@ -11,9 +11,9 @@ from ament_index_python.packages import get_package_share_directory
 def generate_launch_description():
     # Mirror mobile_manipulator_marker.launch.py arguments
     rviz_arg = DeclareLaunchArgument('rviz', default_value='true')
-    urdf_arg = DeclareLaunchArgument('urdfFile', default_value='')
-    task_arg = DeclareLaunchArgument('taskFile', default_value='')
-    lib_arg = DeclareLaunchArgument('libFolder', default_value='')
+    urdf_arg = DeclareLaunchArgument('urdfFile', default_value='/tmp/ocs2_auto_generated')
+    task_arg = DeclareLaunchArgument('taskFile', default_value='/tmp/ocs2_auto_generated')
+    lib_arg = DeclareLaunchArgument('libFolder', default_value='/tmp/ocs2_auto_generated')
     debug_arg = DeclareLaunchArgument('debug', default_value='false')
     enable_joystick_arg = DeclareLaunchArgument('enableJoystick', default_value='false')
     enable_auto_pos_arg = DeclareLaunchArgument('enableAutoPosition', default_value='false')

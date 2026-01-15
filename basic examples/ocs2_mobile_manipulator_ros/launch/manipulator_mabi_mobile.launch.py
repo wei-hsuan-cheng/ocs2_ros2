@@ -28,8 +28,7 @@ def generate_launch_description():
         ),
         launch.actions.DeclareLaunchArgument(
             name='libFolder',
-            default_value=get_package_share_directory(
-                'ocs2_mobile_manipulator') + '/auto_generated/mabi_mobile'
+            default_value='/tmp/ocs2_auto_generated/mabi_mobile'
         ),
         launch.actions.DeclareLaunchArgument(
             name='markerPublishRate',

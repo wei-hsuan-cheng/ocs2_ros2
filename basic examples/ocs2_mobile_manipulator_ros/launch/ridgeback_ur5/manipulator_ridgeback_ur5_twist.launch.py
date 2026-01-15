@@ -14,9 +14,7 @@ def generate_launch_description():
     task_default = os.path.join(
         get_package_share_directory('ocs2_mobile_manipulator'),
         'config/ridgeback_ur5/task.info')
-    lib_default = os.path.join(
-        get_package_share_directory('ocs2_mobile_manipulator'),
-        'auto_generated/ridgeback_ur5')
+    lib_default = '/tmp/ocs2_auto_generated/ridgeback_ur5'
 
     rviz_arg = DeclareLaunchArgument('rviz', default_value='true')
     debug_arg = DeclareLaunchArgument('debug', default_value='false')
