@@ -183,7 +183,7 @@ https://github.com/user-attachments/assets/aed3173f-a6e6-4499-ae8c-d101bedc5222
     cd ~/ros2_ws
     colcon build --packages-up-to \
         ocs2_mobile_manipulator_ros \
-        --parallel-workers 2 --executor sequential\
+        --parallel-workers 1 --executor sequential\
         --symlink-install \
         && . install/setup.bash
     ```
@@ -240,7 +240,11 @@ https://github.com/user-attachments/assets/aed3173f-a6e6-4499-ae8c-d101bedc5222
 * build
     ```bash
     cd ~/ros2_ws
-    colcon build --packages-up-to ocs2_legged_robot_ros --symlink-install
+    colcon build --packages-up-to \
+        ocs2_legged_robot_ros \
+        --parallel-workers 1 --executor sequential\
+        --symlink-install \
+        && . install/setup.bash
     ```
 * run
     ```bash
