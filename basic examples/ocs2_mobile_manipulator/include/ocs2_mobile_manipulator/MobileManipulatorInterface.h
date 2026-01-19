@@ -127,7 +127,6 @@ namespace ocs2::mobile_manipulator
         std::unique_ptr<PinocchioInterface> pinocchioInterfacePtr_;
         ManipulatorModelInfo manipulatorModelInfo_;
 
-        // 自碰撞几何接口
         std::unique_ptr<PinocchioGeometryInterface> pinocchioGeometryInterfacePtr_;
 
         vector_t initialState_;
