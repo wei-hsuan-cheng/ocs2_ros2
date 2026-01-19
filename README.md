@@ -225,9 +225,10 @@ https://github.com/user-attachments/assets/aed3173f-a6e6-4499-ae8c-d101bedc5222
     ```bash
     source ~/ros2_ws/install/setup.bash
     # Marker/Twist/Trajecoty target modes
-    ros2 launch ocs2_mobile_manipulator_ros manipulator_ridgeback_ur5_marker.launch.py
-    ros2 launch ocs2_mobile_manipulator_ros manipulator_ridgeback_ur5_twist.launch.py
-    ros2 launch ocs2_mobile_manipulator_ros manipulator_ridgeback_ur5_trajectory.launch.py
+    ros2 launch ocs2_mobile_manipulator_ros manipulator_ridgeback_ur5_marker.launch.py solver:=ddp
+    ros2 launch ocs2_mobile_manipulator_ros manipulator_ridgeback_ur5_twist.launch.py solver:=ddp
+    ros2 launch ocs2_mobile_manipulator_ros manipulator_ridgeback_ur5_trajectory.launch.py solver:=ddp
+    # solver:=ddp, sqp
     ```
 
 </details>
