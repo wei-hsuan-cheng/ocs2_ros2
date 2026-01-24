@@ -53,7 +53,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "ocs2_mobile_manipulator/MobileManipulatorPreComputation.h"
 #include "ocs2_mobile_manipulator/constraint/EndEffectorConstraint.h"
 #include "ocs2_mobile_manipulator/constraint/BodyRelativeConstraint.h"
-#include "ocs2_mobile_manipulator/constraint/JointTrackingConstraint.h"
 
 #include "ocs2_mobile_manipulator/constraint/MobileManipulatorSelfCollisionConstraint.h"
 #include "ocs2_mobile_manipulator/cost/QuadraticInputCost.h"
@@ -65,6 +64,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // Boost
 #include <boost/filesystem/operations.hpp>
 #include <boost/filesystem/path.hpp>
+
 
 namespace ocs2::mobile_manipulator
 {
@@ -185,16 +185,6 @@ namespace ocs2::mobile_manipulator
         // joint limits constraint
         problem_.softConstraintPtr->add("jointLimits",
                                         getJointLimitSoftConstraint(*pinocchioInterfacePtr_, taskFile));
-
-        // Joint/base pose tracking constraint (for IDLE / static hold)
-        bool activateJointTracking = false;
-        loadData::loadPtreeValue(pt, activateJointTracking, "jointTracking.activate", false);
-        if (activateJointTracking)
-        {
-            problem_.stateSoftConstraintPtr->add(
-                "jointTracking", getJointTrackingConstraint(taskFile, "jointTracking"));
-        }
-
         // end-effector state constraint
         problem_.stateSoftConstraintPtr->add("endEffector", getEndEffectorConstraint(
                                                  *pinocchioInterfacePtr_, taskFile, "endEffector",
@@ -202,7 +192,6 @@ namespace ocs2::mobile_manipulator
         problem_.finalSoftConstraintPtr->add("finalEndEffector", getEndEffectorConstraint(
                                                  *pinocchioInterfacePtr_, taskFile, "finalEndEffector",
                                                  usePreComputation, libraryFolder, recompileLibraries));
-
         // self-collision avoidance constraint
         bool activateSelfCollision = true;
         loadData::loadPtreeValue(pt, activateSelfCollision, "selfCollision.activate", true);
@@ -307,83 +296,6 @@ namespace ocs2::mobile_manipulator
         return std::make_unique<QuadraticInputCost>(std::move(R), manipulatorModelInfo_.stateDim);
     }
 
-    // Joint tracking constraint helper
-    std::unique_ptr<StateCost> MobileManipulatorInterface::getJointTrackingConstraint(
-        const std::string& taskFile, const std::string& prefix)
-    {
-        boost::property_tree::ptree pt;
-        boost::property_tree::read_info(taskFile, pt);
-
-        const int armDim = manipulatorModelInfo_.armDim;
-        const int baseStateDim = manipulatorModelInfo_.stateDim - manipulatorModelInfo_.armDim;
-
-        // For different model types, base "pose" tracking dimensions:
-        // - DefaultManipulator: 0
-        // - WheelBasedMobileManipulator: 3  -> [x, y, yaw]
-        // - FloatingArm / FullyActuatedFloatingArm: 6 -> [x, y, z, zyx]
-        const int basePoseDim =
-            (manipulatorModelInfo_.manipulatorModelType == ManipulatorModelType::WheelBasedMobileManipulator) ? 3 :
-            ((manipulatorModelInfo_.manipulatorModelType == ManipulatorModelType::FloatingArmManipulator ||
-              manipulatorModelInfo_.manipulatorModelType == ManipulatorModelType::FullyActuatedFloatingArmManipulator) ? 6 : 0);
-
-        // Sanity: basePoseDim cannot exceed baseStateDim (base state may include extra variables depending on model)
-        if (basePoseDim > baseStateDim)
-        {
-            throw std::runtime_error("[getJointTrackingConstraint] basePoseDim > baseStateDim. Check model mapping.");
-        }
-
-        // weights
-        scalar_t muBase = 1.0;
-        scalar_t muArm = 1.0;
-        loadData::loadPtreeValue(pt, muBase, prefix + ".muBase", false);
-        loadData::loadPtreeValue(pt, muArm, prefix + ".muArm", false);
-
-        // reference
-        vector_t q_ref_arm = vector_t::Zero(armDim);
-        loadData::loadEigenMatrix(taskFile, prefix + ".reference.arm", q_ref_arm);
-
-        vector_t desired = vector_t::Zero(basePoseDim + armDim);
-        if (basePoseDim > 0)
-        {
-            // NOTE: we read from "reference.base.<modelTypeString>" to match the style of initialState/inputCost.
-            vector_t q_ref_base = vector_t::Zero(basePoseDim);
-            loadData::loadEigenMatrix(taskFile,
-                                      prefix + ".reference.base." + modelTypeEnumToString(manipulatorModelInfo_.manipulatorModelType),
-                                      q_ref_base);
-            desired.head(basePoseDim) = q_ref_base;
-        }
-        desired.tail(armDim) = q_ref_arm;
-
-        std::cerr << "\n #### " << prefix << " Settings:\n";
-        std::cerr << " #### =============================================================================\n";
-        std::cerr << " #### basePoseDim: " << basePoseDim << "\n";
-        std::cerr << " #### muBase: " << muBase << "\n";
-        std::cerr << " #### muArm:  " << muArm << "\n";
-        if (basePoseDim > 0)
-        {
-            std::cerr << " #### q_ref_base: " << desired.head(basePoseDim).transpose() << "\n";
-        }
-        std::cerr << " #### q_ref_arm:  " << desired.tail(armDim).transpose() << "\n";
-        std::cerr << " #### =============================================================================\n";
-
-        // constraint c(q) = [basePose - baseRef; q_arm - q_ref]
-        auto constraint = std::make_unique<JointTrackingConstraint>(manipulatorModelInfo_, desired);
-
-        // penalty per coordinate (same mu for base coords, same mu for arm coords)
-        std::vector<std::unique_ptr<PenaltyBase>> penaltyArray;
-        penaltyArray.resize(static_cast<size_t>(basePoseDim + armDim));
-
-        for (int i = 0; i < basePoseDim; ++i)
-        {
-            penaltyArray[static_cast<size_t>(i)] = std::make_unique<QuadraticPenalty>(muBase);
-        }
-        for (int i = 0; i < armDim; ++i)
-        {
-            penaltyArray[static_cast<size_t>(basePoseDim + i)] = std::make_unique<QuadraticPenalty>(muArm);
-        }
-
-        return std::make_unique<StateSoftConstraint>(std::move(constraint), std::move(penaltyArray));
-    }
 
     std::unique_ptr<StateCost> MobileManipulatorInterface::getEndEffectorConstraint(
         const PinocchioInterface& pinocchioInterface,
@@ -768,12 +680,11 @@ namespace ocs2::mobile_manipulator
         return std::make_unique<StateSoftConstraint>(std::move(constraint), std::move(penaltyArray));
     }
 
-
     std::unique_ptr<PinocchioGeometryInterface> MobileManipulatorInterface::getPinocchioGeometryInterface() const
     {
         if (pinocchioGeometryInterfacePtr_)
         {
-            // This returns a copy since the original pointer is private
+            // 返回一个副本，因为原始指针是私有的
             return std::make_unique<PinocchioGeometryInterface>(*pinocchioGeometryInterfacePtr_);
         }
         return nullptr;
