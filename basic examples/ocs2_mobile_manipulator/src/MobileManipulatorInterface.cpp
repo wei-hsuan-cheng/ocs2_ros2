@@ -54,6 +54,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "ocs2_mobile_manipulator/constraint/EndEffectorConstraint.h"
 #include "ocs2_mobile_manipulator/constraint/BodyRelativeConstraint.h"
 #include "ocs2_mobile_manipulator/constraint/JointTrackingConstraint.h"
+#include "ocs2_mobile_manipulator/constraint/BaseTrackingConstraint.h"
 
 #include "ocs2_mobile_manipulator/constraint/MobileManipulatorSelfCollisionConstraint.h"
 #include "ocs2_mobile_manipulator/cost/QuadraticInputCost.h"
@@ -186,13 +187,22 @@ namespace ocs2::mobile_manipulator
         problem_.softConstraintPtr->add("jointLimits",
                                         getJointLimitSoftConstraint(*pinocchioInterfacePtr_, taskFile));
 
-        // Joint/base pose tracking constraint (for IDLE / static hold)
+        // Joint tracking constraint (ARM ONLY)
         bool activateJointTracking = false;
         loadData::loadPtreeValue(pt, activateJointTracking, "jointTracking.activate", false);
         if (activateJointTracking)
         {
-            problem_.stateSoftConstraintPtr->add(
-                "jointTracking", getJointTrackingConstraint(taskFile, "jointTracking"));
+        problem_.stateSoftConstraintPtr->add(
+            "jointTracking", getJointTrackingConstraint(taskFile, "jointTracking"));
+        }
+
+        // Base tracking constraint (BASE ONLY)
+        bool activateBaseTracking = false;
+        loadData::loadPtreeValue(pt, activateBaseTracking, "baseTracking.activate", false);
+        if (activateBaseTracking)
+        {
+        problem_.stateSoftConstraintPtr->add(
+            "baseTracking", getBaseTrackingConstraint(taskFile, "baseTracking"));
         }
 
         // end-effector state constraint
@@ -314,76 +324,125 @@ namespace ocs2::mobile_manipulator
         boost::property_tree::ptree pt;
         boost::property_tree::read_info(taskFile, pt);
 
-        const int armDim = manipulatorModelInfo_.armDim;
-        const int baseStateDim = manipulatorModelInfo_.stateDim - manipulatorModelInfo_.armDim;
+        const int armDim = static_cast<int>(manipulatorModelInfo_.armDim);
 
-        // For different model types, base "pose" tracking dimensions:
-        // - DefaultManipulator: 0
-        // - WheelBasedMobileManipulator: 3  -> [x, y, yaw]
-        // - FloatingArm / FullyActuatedFloatingArm: 6 -> [x, y, z, zyx]
-        const int basePoseDim =
-            (manipulatorModelInfo_.manipulatorModelType == ManipulatorModelType::WheelBasedMobileManipulator) ? 3 :
-            ((manipulatorModelInfo_.manipulatorModelType == ManipulatorModelType::FloatingArmManipulator ||
-              manipulatorModelInfo_.manipulatorModelType == ManipulatorModelType::FullyActuatedFloatingArmManipulator) ? 6 : 0);
-
-        // Sanity: basePoseDim cannot exceed baseStateDim (base state may include extra variables depending on model)
-        if (basePoseDim > baseStateDim)
-        {
-            throw std::runtime_error("[getJointTrackingConstraint] basePoseDim > baseStateDim. Check model mapping.");
+        // -------------------------
+        // Weight (mu)
+        // New key:  jointTracking.mu
+        // Old key:  jointTracking.muArm
+        // -------------------------
+        scalar_t mu = 1.0;
+        if (auto opt = pt.get_optional<scalar_t>(prefix + ".mu")) {
+        mu = opt.value();
+        } else if (auto optOld = pt.get_optional<scalar_t>(prefix + ".muArm")) {
+        mu = optOld.value();
         }
 
-        // weights
-        scalar_t muBase = 1.0;
-        scalar_t muArm = 1.0;
-        loadData::loadPtreeValue(pt, muBase, prefix + ".muBase", false);
-        loadData::loadPtreeValue(pt, muArm, prefix + ".muArm", false);
-
-        // reference
+        // -------------------------
+        // Reference (ARM ONLY)
+        // New key:  jointTracking.reference
+        // Old key:  jointTracking.reference.arm
+        // -------------------------
         vector_t q_ref_arm = vector_t::Zero(armDim);
+
+        // Use ptree to check existence robustly (no reliance on exceptions).
+        if (pt.get_child_optional(prefix + ".reference")) {
+        loadData::loadEigenMatrix(taskFile, prefix + ".reference", q_ref_arm);
+        } else {
         loadData::loadEigenMatrix(taskFile, prefix + ".reference.arm", q_ref_arm);
-
-        vector_t desired = vector_t::Zero(basePoseDim + armDim);
-        if (basePoseDim > 0)
-        {
-            // NOTE: we read from "reference.base.<modelTypeString>" to match the style of initialState/inputCost.
-            vector_t q_ref_base = vector_t::Zero(basePoseDim);
-            loadData::loadEigenMatrix(taskFile,
-                                      prefix + ".reference.base." + modelTypeEnumToString(manipulatorModelInfo_.manipulatorModelType),
-                                      q_ref_base);
-            desired.head(basePoseDim) = q_ref_base;
         }
-        desired.tail(armDim) = q_ref_arm;
 
-        std::cerr << "\n #### " << prefix << " Settings:\n";
+        std::cerr << "\n #### " << prefix << " Settings (ARM ONLY):\n";
         std::cerr << " #### =============================================================================\n";
-        std::cerr << " #### basePoseDim: " << basePoseDim << "\n";
-        std::cerr << " #### muBase: " << muBase << "\n";
-        std::cerr << " #### muArm:  " << muArm << "\n";
-        if (basePoseDim > 0)
-        {
-            std::cerr << " #### q_ref_base: " << desired.head(basePoseDim).transpose() << "\n";
-        }
-        std::cerr << " #### q_ref_arm:  " << desired.tail(armDim).transpose() << "\n";
+        std::cerr << " #### mu: " << mu << "\n";
+        std::cerr << " #### q_ref_arm: " << q_ref_arm.transpose() << "\n";
         std::cerr << " #### =============================================================================\n";
 
-        // constraint c(q) = [basePose - baseRef; q_arm - q_ref]
-        auto constraint = std::make_unique<JointTrackingConstraint>(manipulatorModelInfo_, desired);
+        // constraint: c(x) = q_arm - q_ref_arm
+        auto constraint = std::make_unique<JointTrackingConstraint>(manipulatorModelInfo_, q_ref_arm);
 
-        // penalty per coordinate (same mu for base coords, same mu for arm coords)
+        // penalty per joint coordinate
         std::vector<std::unique_ptr<PenaltyBase>> penaltyArray;
-        penaltyArray.resize(static_cast<size_t>(basePoseDim + armDim));
-
-        for (int i = 0; i < basePoseDim; ++i)
-        {
-            penaltyArray[static_cast<size_t>(i)] = std::make_unique<QuadraticPenalty>(muBase);
-        }
-        for (int i = 0; i < armDim; ++i)
-        {
-            penaltyArray[static_cast<size_t>(basePoseDim + i)] = std::make_unique<QuadraticPenalty>(muArm);
+        penaltyArray.resize(static_cast<size_t>(armDim));
+        for (int i = 0; i < armDim; ++i) {
+            penaltyArray[static_cast<size_t>(i)] = std::make_unique<QuadraticPenalty>(mu);
         }
 
         return std::make_unique<StateSoftConstraint>(std::move(constraint), std::move(penaltyArray));
     }
+
+    // Base tracking constraint helper (BASE ONLY)
+    std::unique_ptr<StateCost> MobileManipulatorInterface::getBaseTrackingConstraint(
+        const std::string& taskFile, const std::string& prefix)
+    {
+        boost::property_tree::ptree pt;
+        boost::property_tree::read_info(taskFile, pt);
+
+        // basePoseDim by model type
+        int basePoseDim = 0;
+        if (manipulatorModelInfo_.manipulatorModelType == ManipulatorModelType::WheelBasedMobileManipulator) {
+            basePoseDim = 3;
+        } else if (manipulatorModelInfo_.manipulatorModelType == ManipulatorModelType::FloatingArmManipulator ||
+                    manipulatorModelInfo_.manipulatorModelType == ManipulatorModelType::FullyActuatedFloatingArmManipulator) {
+            basePoseDim = 6;
+        } else {
+            throw std::runtime_error(
+                "[getBaseTrackingConstraint] basePoseDim == 0 (DefaultManipulator). "
+                "Do not activate baseTracking for this model.");
+        }
+
+        // -------------------------
+        // Weight (mu)
+        // New key: baseTracking.mu
+        // Old key: baseTracking.muBase
+        // -------------------------
+        scalar_t mu = 1.0;
+        if (auto opt = pt.get_optional<scalar_t>(prefix + ".mu")) {
+            mu = opt.value();
+        } else if (auto optOld = pt.get_optional<scalar_t>(prefix + ".muBase")) {
+            mu = optOld.value();
+        }
+
+        // -------------------------
+        // Reference (BASE ONLY)
+        // New key: baseTracking.reference.base.<modelTypeString>
+        // Old key: baseTracking.reference.base.<modelTypeString> (same)  or baseTracking.reference (legacy)
+        // -------------------------
+        vector_t baseRef = vector_t::Zero(basePoseDim);
+
+        // Preferred style: "baseTracking.reference.base.<modelTypeEnumToString(...)>"
+        const std::string modelKey = modelTypeEnumToString(manipulatorModelInfo_.manipulatorModelType);
+        const std::string keyPreferred = prefix + ".reference.base." + modelKey;
+
+        if (pt.get_child_optional(keyPreferred)) {
+            loadData::loadEigenMatrix(taskFile, keyPreferred, baseRef);
+        } else if (pt.get_child_optional(prefix + ".reference")) {
+            // fallback: allow writing baseTracking.reference directly as matrix
+            loadData::loadEigenMatrix(taskFile, prefix + ".reference", baseRef);
+        } else {
+            throw std::runtime_error("[getBaseTrackingConstraint] missing base reference in task.info.");
+        }
+
+        std::cerr << "\n #### " << prefix << " Settings (BASE ONLY):\n";
+        std::cerr << " #### =============================================================================\n";
+        std::cerr << " #### basePoseDim: " << basePoseDim << "\n";
+        std::cerr << " #### mu: " << mu << "\n";
+        std::cerr << " #### baseRef: " << baseRef.transpose() << "\n";
+        std::cerr << " #### =============================================================================\n";
+
+        // constraint: c(x) = basePose - baseRef
+        auto constraint = std::make_unique<BaseTrackingConstraint>(manipulatorModelInfo_, baseRef);
+
+        // penalty per coordinate
+        std::vector<std::unique_ptr<PenaltyBase>> penaltyArray;
+        penaltyArray.resize(static_cast<size_t>(basePoseDim));
+        for (int i = 0; i < basePoseDim; ++i) {
+            penaltyArray[static_cast<size_t>(i)] = std::make_unique<QuadraticPenalty>(mu);
+        }
+
+        return std::make_unique<StateSoftConstraint>(std::move(constraint), std::move(penaltyArray));
+    }
+
 
     std::unique_ptr<StateCost> MobileManipulatorInterface::getEndEffectorConstraint(
         const PinocchioInterface& pinocchioInterface,

@@ -96,6 +96,8 @@ namespace ocs2::mobile_manipulator
         std::unique_ptr<StateInputCost> getQuadraticInputCost(const std::string& taskFile);
         std::unique_ptr<StateCost> getJointTrackingConstraint(const std::string& taskFile,
                                                               const std::string& prefix);
+        std::unique_ptr<StateCost> getBaseTrackingConstraint(const std::string& taskFile,
+                                                             const std::string& prefix);
         std::unique_ptr<StateCost> getEndEffectorConstraint(const PinocchioInterface& pinocchioInterface,
                                                             const std::string& taskFile,
                                                             const std::string& prefix, bool useCaching,

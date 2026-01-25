@@ -1,12 +1,6 @@
-/******************************************************************************
-Added by wei-hsuan-cheng (Jan. 2026)
-******************************************************************************/
-
 #pragma once
 
-#include <stdexcept>
-#include <string>
-
+#include <ocs2_core/Types.h>
 #include <ocs2_core/constraint/StateConstraint.h>
 
 #include "ocs2_mobile_manipulator/ManipulatorModelInfo.h"
@@ -14,52 +8,36 @@ Added by wei-hsuan-cheng (Jan. 2026)
 namespace ocs2::mobile_manipulator {
 
 /**
- * JointTrackingConstraint
+ * JointTrackingConstraint (ARM ONLY)
  *
- * Tracks a desired configuration in "position space" (Pinocchio nq-space):
- * - DefaultManipulator: tracks arm joints only       q_arm
- * - WheelBasedMobileManipulator: tracks planar base  [x, y, yaw] and arm joints
- * - FloatingArmManipulator / FullyActuatedFloatingArmManipulator:
- *     tracks floating base [x, y, z, zyx] and arm joints
+ * Constraint vector:
+ *   c(x) = q_arm(x) - q_arm_ref
  *
- * The constraint value is simply:
- *   c(q) = S*q - q_ref
- * where S selects the tracked coordinates.
- *
- * NOTE:
- *  - For wheel-based: base coordinates are (x, y, yaw) in the first 3 entries of state.
- *  - For floating-base: base coordinates are (x, y, z, zyx) in the first 6 entries of state.
- *  - Arm joints are always the last info.armDim entries of state (see AccessHelperFunctionsImpl).
+ * where q_arm is extracted from the full state vector by:
+ *   baseStateDim = stateDim - armDim
+ *   q_arm = state.segment(baseStateDim, armDim)
  */
 class JointTrackingConstraint final : public StateConstraint {
-public:
-  JointTrackingConstraint(const ManipulatorModelInfo& info, vector_t desired);
+ public:
+  JointTrackingConstraint(const ManipulatorModelInfo& modelInfo, vector_t qArmRef);
+
   ~JointTrackingConstraint() override = default;
 
   JointTrackingConstraint* clone() const override { return new JointTrackingConstraint(*this); }
 
-  size_t getNumConstraints(scalar_t time) const override;
-  vector_t getValue(scalar_t time, const vector_t& state, const PreComputation& preComputation) const override;
+  size_t getNumConstraints(scalar_t /*time*/) const override { return armDim_; }
+
+  vector_t getValue(scalar_t time, const vector_t& state, const PreComputation& preComp) const override;
+
   VectorFunctionLinearApproximation getLinearApproximation(
-      scalar_t time, const vector_t& state, const PreComputation& preComputation) const override;
+      scalar_t time, const vector_t& state, const PreComputation& preComp) const override;
 
-  /** Returns base pose dimension tracked by this constraint: 0 / 3 / 6. */
-  size_t basePoseDim() const { return basePoseDim_; }
+ private:
+  size_t stateDim_{0};
+  size_t armDim_{0};
+  size_t baseStateDim_{0};
 
-  /** Returns total constraint dimension: basePoseDim + armDim */
-  size_t constraintDim() const { return basePoseDim_ + info_.armDim; }
-
-  /** Desired vector layout: [base_pose(optional), q_arm] */
-  const vector_t& desired() const { return desired_; }
-
-private:
-  JointTrackingConstraint(const JointTrackingConstraint& other) = default;
-
-  static size_t computeBasePoseDim(ManipulatorModelType type);
-
-  ManipulatorModelInfo info_;
-  size_t basePoseDim_{0};
-  vector_t desired_;
+  vector_t qArmRef_;
 };
 
 }  // namespace ocs2::mobile_manipulator
