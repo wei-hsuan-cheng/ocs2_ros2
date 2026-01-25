@@ -38,6 +38,7 @@ add_library(${PROJECT_NAME}
         src/constraint/BodyRelativeConstraint.cpp
         src/constraint/JointTrackingConstraint.cpp
         src/constraint/BaseTrackingConstraint.cpp
+        src/reference/MobileManipulatorReferenceManager.cpp
         src/dynamics/WheelBasedMobileManipulatorDynamics.cpp
         src/dynamics/DefaultManipulatorDynamics.cpp
         src/dynamics/FloatingArmManipulatorDynamics.cpp
