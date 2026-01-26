@@ -213,6 +213,16 @@ https://github.com/user-attachments/assets/aed3173f-a6e6-4499-ae8c-d101bedc5222
 
     https://github.com/user-attachments/assets/100aae62-9e80-487b-89cf-ea6a97ef2505
 
+* run UR-5
+    ```bash
+    source ~/ros2_ws/install/setup.bash
+    # Marker/Twist/Trajecoty target modes
+    ros2 launch ocs2_mobile_manipulator_ros ur5_marker.launch.py solver:=ddp
+    ros2 launch ocs2_mobile_manipulator_ros ur5_twist.launch.py solver:=ddp
+    ros2 launch ocs2_mobile_manipulator_ros ur5_trajectory.launch.py solver:=ddp
+    # solver:=ddp, sqp
+    ```
+
 * run Clearpath Ridgeback with UR-5
     ```bash
     source ~/ros2_ws/install/setup.bash
