@@ -68,6 +68,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <boost/filesystem/operations.hpp>
 #include <boost/filesystem/path.hpp>
 
+#include <algorithm>
+#include <sstream>
+
 namespace ocs2::mobile_manipulator
 {
     MobileManipulatorInterface::MobileManipulatorInterface(const std::string& taskFile,
@@ -176,6 +179,56 @@ namespace ocs2::mobile_manipulator
 
         // Reference Manager
         referenceManagerPtr_ = std::make_shared<MobileManipulatorReferenceManager>();
+        if (const auto mmRefManager =
+                std::dynamic_pointer_cast<MobileManipulatorReferenceManager>(referenceManagerPtr_))
+        {
+            BlendingWeights defaultW{};
+            loadData::loadPtreeValue(pt, defaultW.alphaEe, "referenceBlending.default.alphaEe", false);
+            loadData::loadPtreeValue(pt, defaultW.alphaBase, "referenceBlending.default.alphaBase", false);
+            loadData::loadPtreeValue(pt, defaultW.alphaJoint, "referenceBlending.default.alphaJoint", false);
+            mmRefManager->setDefaultBlendingWeights(defaultW);
+
+            bool normalize = true;
+            loadData::loadPtreeValue(pt, normalize, "referenceBlending.normalize", false);
+            mmRefManager->setNormalizeBlending(normalize);
+
+            scalar_t eps = 1e-9;
+            loadData::loadPtreeValue(pt, eps, "referenceBlending.eps", false);
+            mmRefManager->setBlendingEpsilon(eps);
+
+            if (const auto optChild = pt.get_child_optional("referenceBlending.modeWeights"))
+            {
+                mmRefManager->clearModeBlendingWeights();
+                for (const auto& kv : optChild.value())
+                {
+                    if (auto optMode = kv.second.get_optional<size_t>("mode"))
+                    {
+                        const size_t mode = optMode.value();
+                        BlendingWeights w{};
+                        w.alphaEe = kv.second.get<scalar_t>("alphaEe", 0.0);
+                        w.alphaBase = kv.second.get<scalar_t>("alphaBase", 0.0);
+                        w.alphaJoint = kv.second.get<scalar_t>("alphaJoint", 0.0);
+                        mmRefManager->setModeBlendingWeights(mode, w);
+                        continue;
+                    }
+
+                    std::string s = kv.second.get_value<std::string>("");
+                    std::replace(s.begin(), s.end(), ',', ' ');
+                    std::istringstream iss(s);
+                    size_t mode = 0;
+                    BlendingWeights w{};
+                    if (iss >> mode >> w.alphaEe >> w.alphaBase >> w.alphaJoint)
+                    {
+                        mmRefManager->setModeBlendingWeights(mode, w);
+                    }
+                    else if (!s.empty())
+                    {
+                        std::cerr << "[MobileManipulatorInterface] Failed to parse referenceBlending.modeWeights entry: \""
+                                  << s << "\"\n";
+                    }
+                }
+            }
+        }
 
         /*
          * Optimal control problem
@@ -370,8 +423,8 @@ namespace ocs2::mobile_manipulator
         std::cerr << " #### q_ref_arm: " << q_ref_arm.transpose() << "\n";
         std::cerr << " #### =============================================================================\n";
 
-        // constraint: c(x) = q_arm - q_ref_arm
-        auto constraint = std::make_unique<JointTrackingConstraint>(manipulatorModelInfo_, q_ref_arm);
+        // constraint: c(x) = q_arm - q_ref_arm (scaled by ReferenceManager blending weights if available)
+        auto constraint = std::make_unique<JointTrackingConstraint>(manipulatorModelInfo_, q_ref_arm, *referenceManagerPtr_);
 
         // penalty per joint coordinate
         std::vector<std::unique_ptr<PenaltyBase>> penaltyArray;
@@ -442,8 +495,8 @@ namespace ocs2::mobile_manipulator
         std::cerr << " #### baseRef: " << baseRef.transpose() << "\n";
         std::cerr << " #### =============================================================================\n";
 
-        // constraint: c(x) = basePose - baseRef
-        auto constraint = std::make_unique<BaseTrackingConstraint>(manipulatorModelInfo_, baseRef);
+        // constraint: c(x) = basePose - baseRef (scaled by ReferenceManager blending weights if available)
+        auto constraint = std::make_unique<BaseTrackingConstraint>(manipulatorModelInfo_, baseRef, *referenceManagerPtr_);
 
         // penalty per coordinate
         std::vector<std::unique_ptr<PenaltyBase>> penaltyArray;

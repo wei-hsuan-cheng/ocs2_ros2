@@ -5,6 +5,10 @@
 
 #include "ocs2_mobile_manipulator/ManipulatorModelInfo.h"
 
+namespace ocs2 {
+class ReferenceManager;
+}
+
 namespace ocs2::mobile_manipulator {
 
 /**
@@ -20,6 +24,8 @@ namespace ocs2::mobile_manipulator {
 class JointTrackingConstraint final : public StateConstraint {
  public:
   JointTrackingConstraint(const ManipulatorModelInfo& modelInfo, vector_t qArmRef);
+  JointTrackingConstraint(const ManipulatorModelInfo& modelInfo, vector_t qArmRef, const ocs2::ReferenceManager& referenceManager,
+                          bool active = true);
 
   ~JointTrackingConstraint() override = default;
 
@@ -33,11 +39,15 @@ class JointTrackingConstraint final : public StateConstraint {
       scalar_t time, const vector_t& state, const PreComputation& preComp) const override;
 
  private:
+  scalar_t getActivationScale(scalar_t time) const;
+
   size_t stateDim_{0};
   size_t armDim_{0};
   size_t baseStateDim_{0};
 
   vector_t qArmRef_;
+  const ocs2::ReferenceManager* referenceManagerPtr_{nullptr};
+  bool active_{true};
 };
 
 }  // namespace ocs2::mobile_manipulator

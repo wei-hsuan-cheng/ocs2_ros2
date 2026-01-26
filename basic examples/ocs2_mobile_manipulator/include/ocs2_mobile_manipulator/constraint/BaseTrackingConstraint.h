@@ -5,6 +5,10 @@
 
 #include "ocs2_mobile_manipulator/ManipulatorModelInfo.h"
 
+namespace ocs2 {
+class ReferenceManager;
+}
+
 namespace ocs2::mobile_manipulator {
 
 /**
@@ -25,6 +29,8 @@ namespace ocs2::mobile_manipulator {
 class BaseTrackingConstraint final : public StateConstraint {
  public:
   BaseTrackingConstraint(const ManipulatorModelInfo& modelInfo, vector_t baseRef);
+  BaseTrackingConstraint(const ManipulatorModelInfo& modelInfo, vector_t baseRef, const ocs2::ReferenceManager& referenceManager,
+                         bool active = true);
 
   ~BaseTrackingConstraint() override = default;
 
@@ -40,10 +46,14 @@ class BaseTrackingConstraint final : public StateConstraint {
   size_t getBasePoseDim() const { return basePoseDim_; }
 
  private:
+  scalar_t getActivationScale(scalar_t time) const;
+
   size_t stateDim_{0};
   size_t basePoseDim_{0};
 
   vector_t baseRef_;
+  const ocs2::ReferenceManager* referenceManagerPtr_{nullptr};
+  bool active_{true};
 };
 
 }  // namespace ocs2::mobile_manipulator
