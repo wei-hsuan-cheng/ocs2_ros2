@@ -55,6 +55,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "ocs2_mobile_manipulator/constraint/BodyRelativeConstraint.h"
 #include "ocs2_mobile_manipulator/constraint/JointTrackingConstraint.h"
 #include "ocs2_mobile_manipulator/constraint/BaseTrackingConstraint.h"
+#include "ocs2_mobile_manipulator/reference/MobileManipulatorReferenceManager.h"
 
 #include "ocs2_mobile_manipulator/constraint/MobileManipulatorSelfCollisionConstraint.h"
 #include "ocs2_mobile_manipulator/cost/QuadraticInputCost.h"
@@ -174,7 +175,7 @@ namespace ocs2::mobile_manipulator
         sqpSettings_ = sqp::loadSettings(taskFile, "sqp", false);
 
         // Reference Manager
-        referenceManagerPtr_ = std::make_shared<ReferenceManager>();
+        referenceManagerPtr_ = std::make_shared<MobileManipulatorReferenceManager>();
 
         /*
          * Optimal control problem
@@ -206,12 +207,23 @@ namespace ocs2::mobile_manipulator
         }
 
         // end-effector state constraint
-        problem_.stateSoftConstraintPtr->add("endEffector", getEndEffectorConstraint(
-                                                 *pinocchioInterfacePtr_, taskFile, "endEffector",
-                                                 usePreComputation, libraryFolder, recompileLibraries));
-        problem_.finalSoftConstraintPtr->add("finalEndEffector", getEndEffectorConstraint(
-                                                 *pinocchioInterfacePtr_, taskFile, "finalEndEffector",
-                                                 usePreComputation, libraryFolder, recompileLibraries));
+        bool activateEndEffector = true;
+        loadData::loadPtreeValue(pt, activateEndEffector, "endEffector.activate", false);
+        if (activateEndEffector)
+        {
+            problem_.stateSoftConstraintPtr->add("endEffector", getEndEffectorConstraint(
+                                                     *pinocchioInterfacePtr_, taskFile, "endEffector",
+                                                     usePreComputation, libraryFolder, recompileLibraries));
+        }
+
+        bool activateFinalEndEffector = true;
+        loadData::loadPtreeValue(pt, activateFinalEndEffector, "finalEndEffector.activate", false);
+        if (activateFinalEndEffector)
+        {
+            problem_.finalSoftConstraintPtr->add("finalEndEffector", getEndEffectorConstraint(
+                                                     *pinocchioInterfacePtr_, taskFile, "finalEndEffector",
+                                                     usePreComputation, libraryFolder, recompileLibraries));
+        }
 
         // self-collision avoidance constraint
         bool activateSelfCollision = true;

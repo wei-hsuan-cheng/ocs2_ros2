@@ -29,6 +29,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <ocs2_mobile_manipulator/MobileManipulatorPreComputation.h>
 #include <ocs2_mobile_manipulator/constraint/EndEffectorConstraint.h>
+#include <ocs2_mobile_manipulator/reference/MobileManipulatorReferenceManager.h>
 
 #include <ocs2_core/misc/LinearInterpolation.h>
 
@@ -37,11 +38,13 @@ namespace ocs2::mobile_manipulator
 {
     EndEffectorConstraint::EndEffectorConstraint(const EndEffectorKinematics<scalar_t>& endEffectorKinematics,
                                                  const ReferenceManager& referenceManager,
-                                                 bool dualArmMode)
+                                                 bool dualArmMode,
+                                                 bool active)
         : StateConstraint(ConstraintOrder::Linear),
           endEffectorKinematicsPtr_(endEffectorKinematics.clone()),
           referenceManagerPtr_(&referenceManager),
-          dualArmMode_(dualArmMode)
+          dualArmMode_(dualArmMode),
+          active_(active)
     {
         if (dualArmMode_) {
             // Dual-arm mode: check if there are exactly 2 end effectors
@@ -62,6 +65,21 @@ namespace ocs2::mobile_manipulator
         pinocchioEEKinPtr_ = dynamic_cast<PinocchioEndEffectorKinematics*>(endEffectorKinematicsPtr_.get());
     }
 
+    scalar_t EndEffectorConstraint::getActivationScale(scalar_t time) const
+    {
+        if (!active_)
+        {
+            return 0.0;
+        }
+
+        const auto* mmRefManager = dynamic_cast<const MobileManipulatorReferenceManager*>(referenceManagerPtr_);
+        if (mmRefManager == nullptr)
+        {
+            return 1.0;
+        }
+
+        return mmRefManager->getBlendingWeights(time).alphaEe;
+    }
 
     size_t EndEffectorConstraint::getNumConstraints(scalar_t time) const
     {
@@ -72,6 +90,12 @@ namespace ocs2::mobile_manipulator
     vector_t EndEffectorConstraint::getValue(scalar_t time, const vector_t& state,
                                              const PreComputation& preComputation) const
     {
+        const scalar_t activationScale = getActivationScale(time);
+        if (activationScale == 0.0)
+        {
+            return vector_t::Zero(static_cast<long>(getNumConstraints(time)));
+        }
+
         // PinocchioEndEffectorKinematics requires pre-computation with shared PinocchioInterface.
         if (pinocchioEEKinPtr_ != nullptr)
         {
@@ -96,14 +120,14 @@ namespace ocs2::mobile_manipulator
             constraint.segment<3>(6) = positions[1] - rightArmPose.first;
             constraint.tail<3>() = orientationErrors[1];
             
-            return constraint;
+            return activationScale * constraint;
         } else {
             const auto desiredPositionOrientation = interpolateEndEffectorPose(time);
 
             vector_t constraint(6);
             constraint.head<3>() = endEffectorKinematicsPtr_->getPosition(state).front() - desiredPositionOrientation.first;
             constraint.tail<3>() = endEffectorKinematicsPtr_->getOrientationError(state, {desiredPositionOrientation.second}).front();
-            return constraint;
+            return activationScale * constraint;
         }
     }
 
@@ -112,6 +136,16 @@ namespace ocs2::mobile_manipulator
         scalar_t time, const vector_t& state,
         const PreComputation& preComputation) const
     {
+        const scalar_t activationScale = getActivationScale(time);
+        if (activationScale == 0.0)
+        {
+            auto approximation = VectorFunctionLinearApproximation(
+                static_cast<long>(getNumConstraints(time)), state.rows(), 0);
+            approximation.f.setZero();
+            approximation.dfdx.setZero();
+            return approximation;
+        }
+
         // PinocchioEndEffectorKinematics requires pre-computation with shared PinocchioInterface.
         if (pinocchioEEKinPtr_ != nullptr)
         {
@@ -142,6 +176,8 @@ namespace ocs2::mobile_manipulator
             approximation.f.tail<3>() = orientationErrors[1].f;
             approximation.dfdx.bottomRows<3>() = orientationErrors[1].dfdx;
             
+            approximation.f *= activationScale;
+            approximation.dfdx *= activationScale;
             return approximation;
         } else {
             const auto desiredPositionOrientation = interpolateEndEffectorPose(time);
@@ -157,6 +193,8 @@ namespace ocs2::mobile_manipulator
             approximation.f.tail<3>() = eeOrientationError.f;
             approximation.dfdx.bottomRows<3>() = eeOrientationError.dfdx;
 
+            approximation.f *= activationScale;
+            approximation.dfdx *= activationScale;
             return approximation;
         }
     }

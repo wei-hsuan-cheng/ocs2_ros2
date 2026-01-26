@@ -47,12 +47,13 @@ namespace ocs2::mobile_manipulator
 
         EndEffectorConstraint(const EndEffectorKinematics<scalar_t>& endEffectorKinematics,
                               const ReferenceManager& referenceManager,
-                              bool dualArmMode = false);
+                              bool dualArmMode = false,
+                              bool active = true);
         ~EndEffectorConstraint() override = default;
 
         EndEffectorConstraint* clone() const override
         {
-            return new EndEffectorConstraint(*endEffectorKinematicsPtr_, *referenceManagerPtr_, dualArmMode_);
+            return new EndEffectorConstraint(*endEffectorKinematicsPtr_, *referenceManagerPtr_, dualArmMode_, active_);
         }
 
         size_t getNumConstraints(scalar_t time) const override;
@@ -60,8 +61,13 @@ namespace ocs2::mobile_manipulator
         VectorFunctionLinearApproximation getLinearApproximation(scalar_t time, const vector_t& state,
                                                                  const PreComputation& preComputation) const override;
 
+        void setActive(bool active) { active_ = active; }
+        bool isActive() const { return active_; }
+
     private:
         EndEffectorConstraint(const EndEffectorConstraint& other) = default;
+
+        scalar_t getActivationScale(scalar_t time) const;
         
         // Single-arm mode target trajectory interpolation
         std::pair<vector_t, quaternion_t> interpolateEndEffectorPose(scalar_t time) const;
@@ -77,8 +83,9 @@ namespace ocs2::mobile_manipulator
         quaternion_t eeDesiredOrientation_;
         std::unique_ptr<EndEffectorKinematics<scalar_t>> endEffectorKinematicsPtr_;
         const ReferenceManager* referenceManagerPtr_;
-        
+
         // Dual-arm mode flag
         bool dualArmMode_;
+        bool active_;
     };
 }
