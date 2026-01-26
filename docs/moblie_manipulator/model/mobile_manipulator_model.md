@@ -103,8 +103,8 @@ $$
 
 **Parameter mapping in `task.info`**
 - $\mathbf{R}$ → `inputCost.R.*`.
-- $\{\mathbf{Q}_{\mathrm{ee}_p},\,\mathbf{Q}_{\mathrm{ee}_o}\}$ are accessed through $\{\mu_p,\mu_o\}$ → `endEffector.muPosition`, `endEffector.muOrientation`.
-- $\{\mathbf{Q}_{\mathrm{ee}_p}^{\mathrm{f}},\,\mathbf{Q}_{\mathrm{ee}_o}^{\mathrm{f}}\}$ are accessed through $\{\mu_p^{\mathrm{f}},\mu_o^{\mathrm{f}}\}$ → `finalEndEffector.muPosition`, `finalEndEffector.muOrientation`.
+- $\{\mathbf{Q}_{\mathrm{ee}_p},\,\mathbf{Q}_{\mathrm{ee}_o}\}$ are accessed through $\{\mu_p,\mu_o\}$ → `endEffectorTracking.muPosition`, `endEffectorTracking.muOrientation`.
+- $\{\mathbf{Q}_{\mathrm{ee}_p}^{\mathrm{f}},\,\mathbf{Q}_{\mathrm{ee}_o}^{\mathrm{f}}\}$ are accessed through $\{\mu_p^{\mathrm{f}},\mu_o^{\mathrm{f}}\}$ → `finalEndEffectorTracking.muPosition`, `finalEndEffectorTracking.muOrientation`.
 - Penalty params → `selfCollision.*`, `joint*Limits.*`.
 - `EndEffectorConstraint` → `ocs2_mobile_manipulator/src/MobileManipulatorInterface.cpp:299, 320–419`.
 

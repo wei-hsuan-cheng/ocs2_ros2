@@ -212,15 +212,17 @@ inputCost
   }
 }
 
-endEffector
+endEffectorTracking
 {
+  activate          true
   ; end effector quadratic penalty scaling
   muPosition      10.0
   muOrientation    5.0
 }
 
-finalEndEffector
+finalEndEffectorTracking
 {
+  activate          true
   muPosition      10.0
   muOrientation    5.0
 }

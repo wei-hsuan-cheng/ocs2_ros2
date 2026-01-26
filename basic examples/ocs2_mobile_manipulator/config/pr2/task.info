@@ -268,8 +268,9 @@ inputCost
   }
 }
 
-endEffector
+endEffectorTracking
 {
+  activate          true
   dualArmMode      true
   leftArm
   {
@@ -283,8 +284,9 @@ endEffector
   }
 }
 
-finalEndEffector
+finalEndEffectorTracking
 {
+  activate          true
   dualArmMode      true
   leftArm
   {

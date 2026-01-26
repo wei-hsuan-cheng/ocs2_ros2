@@ -206,22 +206,22 @@ namespace ocs2::mobile_manipulator
             "baseTracking", getBaseTrackingConstraint(taskFile, "baseTracking"));
         }
 
-        // end-effector state constraint
-        bool activateEndEffector = true;
-        loadData::loadPtreeValue(pt, activateEndEffector, "endEffector.activate", false);
-        if (activateEndEffector)
+        // end-effector tracking constraint
+        bool activateEndEffectorTracking = true;
+        loadData::loadPtreeValue(pt, activateEndEffectorTracking, "endEffectorTracking.activate", false);
+        if (activateEndEffectorTracking)
         {
-            problem_.stateSoftConstraintPtr->add("endEffector", getEndEffectorConstraint(
-                                                     *pinocchioInterfacePtr_, taskFile, "endEffector",
+            problem_.stateSoftConstraintPtr->add("endEffectorTracking", getEndEffectorConstraint(
+                                                     *pinocchioInterfacePtr_, taskFile, "endEffectorTracking",
                                                      usePreComputation, libraryFolder, recompileLibraries));
         }
 
-        bool activateFinalEndEffector = true;
-        loadData::loadPtreeValue(pt, activateFinalEndEffector, "finalEndEffector.activate", false);
-        if (activateFinalEndEffector)
+        bool activateFinalEndEffectorTracking = true;
+        loadData::loadPtreeValue(pt, activateFinalEndEffectorTracking, "finalEndEffectorTracking.activate", false);
+        if (activateFinalEndEffectorTracking)
         {
-            problem_.finalSoftConstraintPtr->add("finalEndEffector", getEndEffectorConstraint(
-                                                     *pinocchioInterfacePtr_, taskFile, "finalEndEffector",
+            problem_.finalSoftConstraintPtr->add("finalEndEffectorTracking", getEndEffectorConstraint(
+                                                     *pinocchioInterfacePtr_, taskFile, "finalEndEffectorTracking",
                                                      usePreComputation, libraryFolder, recompileLibraries));
         }
 
