@@ -1,6 +1,6 @@
 ; robot model meta-information
 model_information {
-  manipulatorModelType     0      // 0: Default-arm, 1: Wheel-based manipulator, 2: Floating-arm manipulator, 3: Fully actuated floating-arm manipulator
+  manipulatorModelType     0      // 0: Default-arm (fixed base), 1: Wheel-based manipulator, 2: Floating-arm manipulator, 3: Fully actuated floating-arm manipulator
 
   ; motion joints in the URDF to consider fixed
   removeJoints {
@@ -15,7 +15,7 @@ model_information {
 
 model_settings
 {
-  usePreComputation               true // true; false
+  usePreComputation               true
   recompileLibraries              true
 }
 
@@ -269,9 +269,26 @@ referenceBlending
 }
 
 selfCollision
-{
+{ 
   ; activate self-collision constraint
-  activate  false
+  activate  true // false; true
+
+  ; Self Collision raw object pairs
+  collisionObjectPairs
+  {
+    [0] "1, 3"
+  }
+
+  ; minimum distance allowed between the pairs
+  minimumDistance  0.1
+
+  ; relaxed log barrier mu
+  mu     0.01
+
+  ; relaxed log barrier delta
+  delta  0.001
+  
+  ; TODO: Replace the collision meshes of the arm with primitive shapes.
 }
 
 ; Only applied for arm joints: limits parsed from URDF
