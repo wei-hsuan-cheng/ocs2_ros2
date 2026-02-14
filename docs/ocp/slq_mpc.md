@@ -838,7 +838,7 @@ $$
 where
 
 - $n = 0,\dots,N_{\text{wp}}-1$: waypoint index,  
-- $\hat{x}_{n,k}$: deviation from the $n$-th waypoint state at time step $k$, e.g.  
+- $\hat{x}_{n,k}$: deviation from the $n$-th waypoint state at time step $k$, *e.g.*  
   $$\hat{x}_{n,k} = x_k - x_n^{\text{wp}},$$  
 - $W_{p,n}$: waypoint cost matrix (which state components are important at waypoint $n$),  
 - $k_{p,n}$: desired **time step** at which waypoint $n$ should be reached,  
@@ -886,14 +886,14 @@ In other words:
 
 **Potential concern (double-counting the same objective):**
 
-If the reference trajectory $x_k^{\text{ref}}$ already passes through the waypoints at the desired times (i.e. $x_{k_{p,n}}^{\text{ref}} \approx x_n^{\text{wp}}$), then near $k_{p,n}$ the two errors
+If the reference trajectory $x_k^{\text{ref}}$ already passes through the waypoints at the desired times (*i.e.* $x_{k_{p,n}}^{\text{ref}} \approx x_n^{\text{wp}}$), then near $k_{p,n}$ the two errors
 $$
   \tilde{x}_k = x_k - x_k^{\text{ref}}, \qquad
   \hat{x}_{n,k} = x_k - x_n^{\text{wp}}
 $$
 are almost the same. In that case, the trajectory cost $\tilde{x}_k^\top Q \tilde{x}_k$ and the waypoint cost $\hat{x}_{n,k}^\top W_{p,n}\hat{x}_{n,k}$ **both pull toward essentially the same target**, and their weights effectively add up.
 
-If $Q$ and $W_{p,n}$ (and the temporal sharpness $\rho_{p,n}$) are chosen too large simultaneously, the combined tracking + waypoint penalties can become **dominant** over other important terms (e.g. input regularization, obstacle costs, soft constraints). In practice, this means you must **carefully tune**:
+If $Q$ and $W_{p,n}$ (and the temporal sharpness $\rho_{p,n}$) are chosen too large simultaneously, the combined tracking + waypoint penalties can become **dominant** over other important terms (*e.g.* input regularization, obstacle costs, soft constraints). In practice, this means you must **carefully tune**:
 
 - the magnitude of $Q$ vs. $W_{p,n}$, and  
 - how sharply in time the waypoint penalty is activated via $\rho_{p,n}$,
