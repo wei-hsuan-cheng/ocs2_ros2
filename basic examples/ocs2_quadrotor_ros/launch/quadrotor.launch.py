@@ -5,6 +5,8 @@ from launch.actions import IncludeLaunchDescription
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import ThisLaunchFileDir
 from launch_ros.actions import Node
+from launch_ros.substitutions import FindPackageShare
+from launch.substitutions import PathJoinSubstitution
 
 
 def is_wsl():
@@ -33,25 +35,45 @@ def generate_launch_description():
             name='task_name',
             default_value='mpc'
         ),
+        DeclareLaunchArgument(
+            name='taskFile',
+            default_value=PathJoinSubstitution([
+                FindPackageShare('ocs2_quadrotor'),
+                'config',
+                LaunchConfiguration('task_name'),
+                'task.info',
+            ]),
+        ),
+        DeclareLaunchArgument(
+            name='libFolder',
+            default_value='/tmp/ocs2_auto_generated/quadrotor'
+        ),
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(
                 [ThisLaunchFileDir(), '/visualize.launch.py']),
             launch_arguments={
-                'use_joint_state_publisher': 'false'
+                'use_joint_state_publisher': 'false',
+                'libFolder': LaunchConfiguration('libFolder'),
             }.items()
         ),
         Node(
             package='ocs2_quadrotor_ros',
             executable='quadrotor_mpc',
             name='quadrotor_mpc',
-            arguments=[LaunchConfiguration('task_name')],
+            parameters=[{
+                'taskFile': LaunchConfiguration('taskFile'),
+                'libFolder': LaunchConfiguration('libFolder'),
+            }],
             output='screen'
         ),
         Node(
             package='ocs2_quadrotor_ros',
             executable='quadrotor_dummy_test',
             name='quadrotor_dummy_test',
-            arguments=[LaunchConfiguration('task_name')],
+            parameters=[{
+                'taskFile': LaunchConfiguration('taskFile'),
+                'libFolder': LaunchConfiguration('libFolder'),
+            }],
             prefix= prefix,
             output='screen'
         ),
@@ -59,7 +81,6 @@ def generate_launch_description():
             package='ocs2_quadrotor_ros',
             executable='quadrotor_target',
             name='quadrotor_target',
-            arguments=[LaunchConfiguration('task_name')],
             prefix= prefix,
             output='screen'
         )

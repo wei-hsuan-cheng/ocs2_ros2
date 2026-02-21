@@ -40,26 +40,48 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 int main(int argc, char** argv) {
   const std::string robotName = "quadrotor";
 
-  // task file
-  std::vector<std::string> programArgs =
-      rclcpp::remove_ros_arguments(argc, argv);
-
-  if (programArgs.size() <= 1) {
-    throw std::runtime_error("No task file specified. Aborting.");
-  }
-  const auto taskFileFolderName = std::string(programArgs[1]);
-
   // Initialize ros node
   rclcpp::init(argc, argv);
-  rclcpp::Node::SharedPtr node = rclcpp::Node::make_shared(robotName + "_mrt");
+  rclcpp::Node::SharedPtr node = rclcpp::Node::make_shared(
+      robotName + "_mrt",
+      rclcpp::NodeOptions()
+          .allow_undeclared_parameters(true)
+          .automatically_declare_parameters_from_overrides(true));
+
+  // Inputs can be provided either via ROS parameters (preferred) or CLI args for
+  // backwards compatibility:
+  //   params: taskFile, libFolder
+  //   args:   <task_folder_name> [libFolder]
+  if (!node->has_parameter("taskFile")) {
+    node->declare_parameter<std::string>("taskFile", "");
+  }
+  if (!node->has_parameter("libFolder")) {
+    node->declare_parameter<std::string>("libFolder", "");
+  }
+  const auto programArgs = rclcpp::remove_ros_arguments(argc, argv);
 
   // Robot interface
-  const std::string taskFile =
-      ament_index_cpp::get_package_share_directory("ocs2_quadrotor") +
-      "/config/" + taskFileFolderName + "/task.info";
-  const std::string libFolder =
-      ament_index_cpp::get_package_share_directory("ocs2_quadrotor") +
-      "/auto_generated";
+  std::string taskFile = node->get_parameter("taskFile").as_string();
+  if (taskFile.empty()) {
+    if (programArgs.size() <= 1) {
+      throw std::runtime_error(
+          "No task file specified. Provide ROS parameter 'taskFile' or CLI "
+          "argument <task_folder_name>.");
+    }
+    const std::string& taskFileFolderName(programArgs[1]);
+    taskFile = ament_index_cpp::get_package_share_directory("ocs2_quadrotor") +
+               "/config/" + taskFileFolderName + "/task.info";
+  }
+
+  std::string libFolder = node->get_parameter("libFolder").as_string();
+  if (libFolder.empty()) {
+    if (programArgs.size() > 2) {
+      libFolder = programArgs[2];
+    } else {
+      libFolder = ament_index_cpp::get_package_share_directory("ocs2_quadrotor") +
+                  "/auto_generated";
+    }
+  }
   ocs2::quadrotor::QuadrotorInterface quadrotorInterface(taskFile, libFolder);
 
   // MRT
