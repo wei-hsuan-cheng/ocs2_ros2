@@ -420,13 +420,14 @@ One **SLQ (iLQR) iteration** consists of:
    - Run the Riccati-like backward recursion to compute $K_k, l_k$.
 
 3. **Policy update via line search**  
-   Using the affine law $\delta u_k = l_k + K_k\delta x_k$, define a **new control sequence**:
+   Using the affine law $\delta u_k = l_k + K_k\delta x_k$, define the **candidate control law** for a step size $\alpha \in (0,1]$:
    $$
-    u_k^{\text{new}} = u_k^n + \alpha\, l_k,
+    u_k^{\text{cand}}(\alpha)
+    = u_k^n + \alpha\, l_k + K_k\big(x_k^{\text{cand}}(\alpha) - x_k^n\big).
    $$
-   (and keep the feedback $K_k$ for deviations during rollout), with step size $\alpha \in (0,1]$.
+   Here $\alpha$ scales only the feedforward increment $l_k$, while $K_k$ is kept fixed and is used during the rollout to stabilize deviations.
 
-   Roll out the nonlinear dynamics with this updated control law, compute the new cost $\mathcal{J}_{\text{new}}$, and use a **line search** on $\alpha$ until the cost decreases sufficiently.
+   Roll out the nonlinear dynamics with this candidate law, compute the new cost $\mathcal{J}_{\text{cand}}(\alpha)$, and use a **line search** on $\alpha$ until the cost decreases sufficiently.
 
 4. Set $\{x_k^n, u_k^n\}$ to the new trajectory and repeat until convergence (or max iterations).
 
