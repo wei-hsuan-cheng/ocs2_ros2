@@ -294,11 +294,11 @@ https://github.com/user-attachments/assets/aed3173f-a6e6-4499-ae8c-d101bedc5222
     ```bash
     # Gai command
     ros2 run ocs2_legged_robot_ros legged_robot_gait_command --ros-args \
-    -p gaitCommandFile:=/home/whcheng/ocs2_ros2_ws/install/ocs2_legged_robot/share/ocs2_legged_robot/config/command/gait.info
+    -p gaitCommandFile:=<path_to_ws>/install/ocs2_legged_robot/share/ocs2_legged_robot/config/command/gait.info
 
     # Reference motion
     ros2 run ocs2_legged_robot_ros legged_robot_target --ros-args \
-    -p referenceFile:=/home/whcheng/ocs2_ros2_ws/install/ocs2_legged_robot/share/ocs2_legged_robot/config/command/reference.info
+    -p referenceFile:=<path_to_ws>/install/ocs2_legged_robot/share/ocs2_legged_robot/config/command/reference.info
     ```
 
 https://github.com/user-attachments/assets/d29551b7-2ac7-428d-9605-f782193bcaf2
