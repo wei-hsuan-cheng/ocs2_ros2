@@ -8,7 +8,16 @@ This package provide a visualization of the quadruped robot, in the rviz you can
 
 * build command
 ```bash
-colcon build --symlink-install --packages-up-to ocs2_anymal_models --cmake-args -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DCMAKE_BUILD_TYPE=RelWithDebInfo
+cd ~/ros2_ws
+export CMAKE_BUILD_PARALLEL_LEVEL=2 && \
+export MAKEFLAGS=-j2 && \
+export NINJAFLAGS=-j2 && \
+colcon build --symlink-install \
+--packages-up-to ocs2_anymal_models \
+--executor sequential --parallel-workers 2 \
+--cmake-force-configure \
+--cmake-args -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DBUILD_TESTING=OFF -DCMAKE_BUILD_TYPE=Release && \
+. install/setup.bash
 ```
 
 * launch command

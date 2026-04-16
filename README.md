@@ -90,11 +90,18 @@ This section contains basic examples for the OCS2 library.
 * build
     ```bash
     cd ~/ros2_ws
-    colcon build --packages-up-to ocs2_double_integrator_ros --symlink-install
+    export CMAKE_BUILD_PARALLEL_LEVEL=2 && \
+    export MAKEFLAGS=-j2 && \
+    export NINJAFLAGS=-j2 && \
+    colcon build --symlink-install \
+    --packages-up-to ocs2_double_integrator_ros \
+    --executor sequential --parallel-workers 2 \
+    --cmake-force-configure \
+    --cmake-args -DBUILD_TESTING=OFF -DCMAKE_BUILD_TYPE=Release && \
+    . install/setup.bash
     ```
 * run
     ```bash
-    source ~/ros2_ws/install/setup.bash
     ros2 launch ocs2_double_integrator_ros double_integrator.launch.py
     ```
 
@@ -110,11 +117,18 @@ https://github.com/user-attachments/assets/581d03ff-43e4-49c9-8f47-a0ce491b585c
 * build
     ```bash
     cd ~/ros2_ws
-    colcon build --packages-up-to ocs2_cartpole_ros --symlink-install
+    export CMAKE_BUILD_PARALLEL_LEVEL=2 && \
+    export MAKEFLAGS=-j2 && \
+    export NINJAFLAGS=-j2 && \
+    colcon build --symlink-install \
+    --packages-up-to ocs2_cartpole_ros \
+    --executor sequential --parallel-workers 2 \
+    --cmake-force-configure \
+    --cmake-args -DBUILD_TESTING=OFF -DCMAKE_BUILD_TYPE=Release && \
+    . install/setup.bash
     ```
 * run
     ```bash
-    source ~/ros2_ws/install/setup.bash
     ros2 launch ocs2_cartpole_ros cartpole.launch.py
     ```
 
@@ -130,11 +144,18 @@ https://github.com/user-attachments/assets/7fe0fe18-3ad5-47dd-9fe2-be90413c2f2f
 * build
     ```bash
     cd ~/ros2_ws
-    colcon build --packages-up-to ocs2_ballbot_ros --symlink-install
+    export CMAKE_BUILD_PARALLEL_LEVEL=2 && \
+    export MAKEFLAGS=-j2 && \
+    export NINJAFLAGS=-j2 && \
+    colcon build --symlink-install \
+    --packages-up-to ocs2_ballbot_ros \
+    --executor sequential --parallel-workers 2 \
+    --cmake-force-configure \
+    --cmake-args -DBUILD_TESTING=OFF -DCMAKE_BUILD_TYPE=Release && \
+    . install/setup.bash
     ```
 * run
     ```bash
-    source ~/ros2_ws/install/setup.bash
     # Launch demo
     ros2 launch ocs2_ballbot_ros ballbot_ddp.launch.py
     # Send target pose to ballbot [x, y, yaw] [m, deg] 
@@ -153,11 +174,18 @@ https://github.com/user-attachments/assets/c87966b8-525f-4592-a54f-cfaed458a6f2
 * build
     ```bash
     cd ~/ros2_ws
-    colcon build --packages-up-to ocs2_quadrotor_ros --symlink-install
+    export CMAKE_BUILD_PARALLEL_LEVEL=2 && \
+    export MAKEFLAGS=-j2 && \
+    export NINJAFLAGS=-j2 && \
+    colcon build --symlink-install \
+    --packages-up-to ocs2_quadrotor_ros \
+    --executor sequential --parallel-workers 2 \
+    --cmake-force-configure \
+    --cmake-args -DBUILD_TESTING=OFF -DCMAKE_BUILD_TYPE=Release && \
+    . install/setup.bash
     ```
 * run
     ```bash
-    source ~/ros2_ws/install/setup.bash
     ros2 launch ocs2_quadrotor_ros quadrotor.launch.py
     ```
 
@@ -173,16 +201,19 @@ https://github.com/user-attachments/assets/aed3173f-a6e6-4499-ae8c-d101bedc5222
 * build
     ```bash
     cd ~/ros2_ws
-    colcon build --packages-up-to \
-        ocs2_mobile_manipulator_ros \
-        --parallel-workers 1 --executor sequential\
-        --symlink-install \
-        && . install/setup.bash
+    export CMAKE_BUILD_PARALLEL_LEVEL=2 && \
+    export MAKEFLAGS=-j2 && \
+    export NINJAFLAGS=-j2 && \
+    colcon build --symlink-install \
+    --packages-up-to ocs2_mobile_manipulator_ros \
+    --executor sequential --parallel-workers 2 \
+    --cmake-force-configure \
+    --cmake-args -DBUILD_TESTING=OFF -DCMAKE_BUILD_TYPE=Release && \
+    . install/setup.bash
     ```
 
 * run Mabi-Mobile
     ```bash
-    source ~/ros2_ws/install/setup.bash
     ros2 launch ocs2_mobile_manipulator_ros manipulator_mabi_mobile.launch.py
     ```
 
@@ -243,35 +274,32 @@ https://github.com/user-attachments/assets/aed3173f-a6e6-4499-ae8c-d101bedc5222
 * build
     ```bash
     cd ~/ros2_ws
-    colcon build --packages-up-to \
-        ocs2_legged_robot_ros \
-        --parallel-workers 1 --executor sequential\
-        --symlink-install \
-        && . install/setup.bash
+    export CMAKE_BUILD_PARALLEL_LEVEL=2 && \
+    export MAKEFLAGS=-j2 && \
+    export NINJAFLAGS=-j2 && \
+    colcon build --symlink-install \
+    --packages-up-to ocs2_legged_robot_ros \
+    --executor sequential --parallel-workers 2 \
+    --cmake-force-configure \
+    --cmake-args -DBUILD_TESTING=OFF -DCMAKE_BUILD_TYPE=Release && \
+    . install/setup.bash
     ```
 * run legged robot mpc
     ```bash
-    source ~/ros2_ws/install/setup.bash
     ros2 launch ocs2_legged_robot_ros legged_robot_ddp.launch.py
     # Solvers: _ddp, _sqp, _ipm
     ```
 
 * Set gait command and reference motion
     ```bash
-    source ~/ros2_ws/install/setup.bash
     # Gai command
     ros2 run ocs2_legged_robot_ros legged_robot_gait_command --ros-args \
     -p gaitCommandFile:=/home/whcheng/ocs2_ros2_ws/install/ocs2_legged_robot/share/ocs2_legged_robot/config/command/gait.info
+
     # Reference motion
     ros2 run ocs2_legged_robot_ros legged_robot_target --ros-args \
     -p referenceFile:=/home/whcheng/ocs2_ros2_ws/install/ocs2_legged_robot/share/ocs2_legged_robot/config/command/reference.info
     ```
-
-ros2 run ocs2_legged_robot_ros legged_robot_gait_command --ros-args \
-  -p gaitCommandFile:=/home/whcheng/ocs2_ros2_ws/install/ocs2_legged_robot/share/ocs2_legged_robot/config/command/gait.info
-
-ros2 run ocs2_legged_robot_ros legged_robot_target --ros-args \
-  -p referenceFile:=/home/whcheng/ocs2_ros2_ws/install/ocs2_legged_robot/share/ocs2_legged_robot/config/command/reference.info
 
 https://github.com/user-attachments/assets/d29551b7-2ac7-428d-9605-f782193bcaf2
 

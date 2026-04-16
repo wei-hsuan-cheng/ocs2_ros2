@@ -6,12 +6,19 @@ This package provide a mpc example for Anymal quadruped robot. Besides the basic
 
 * build command
 ```bash
-cd ~/ros2_ws/
-colcon build --symlink-install --packages-up-to ocs2_anymal_mpc
+cd ~/ros2_ws
+export CMAKE_BUILD_PARALLEL_LEVEL=2 && \
+export MAKEFLAGS=-j2 && \
+export NINJAFLAGS=-j2 && \
+colcon build --symlink-install \
+--packages-up-to ocs2_anymal_mpc \
+--executor sequential --parallel-workers 2 \
+--cmake-force-configure \
+--cmake-args -DBUILD_TESTING=OFF -DCMAKE_BUILD_TYPE=Release && \
+. install/setup.bash
 ```
 
 * launch command
 ```bash
-source ~/ros2_ws/install/setup.bash
 ros2 launch ocs2_anymal_mpc anymal_c.launch.py
 ```
