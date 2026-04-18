@@ -33,6 +33,25 @@ namespace ocs2
         setupSingleArmMode();
     }
 
+    UnifiedTargetTrajectoriesInteractiveMarker::UnifiedTargetTrajectoriesInteractiveMarker(
+        rclcpp::Node::SharedPtr node, const std::string& topicPrefix,
+        SingleArmCommandPublisher publishCommand,
+        const double publishRate, std::string frameId)
+        : node_(std::move(node)),
+          mode_(Mode::SINGLE_ARM),
+          publishRate_(publishRate),
+          continuousMode_(false),
+          frameId_(std::move(frameId)),
+          singleArmPublishCommand_(std::move(publishCommand.callback)),
+          singleArmPosition_(0.0, 0.0, 1.0),
+          singleArmOrientation_(1.0, 0.0, 0.0, 0.0),
+          activeArm_(ArmType::LEFT)
+    {
+        topicPrefix_ = topicPrefix;
+        setupCommon();
+        setupSingleArmMode();
+    }
+
     // Dual arm constructor
     UnifiedTargetTrajectoriesInteractiveMarker::UnifiedTargetTrajectoriesInteractiveMarker(
         rclcpp::Node::SharedPtr node, const std::string& topicPrefix,
@@ -48,6 +67,27 @@ namespace ocs2
           leftArmOrientation_(1.0, 0.0, 0.0, 0.0),
           rightArmPosition_(0.0, -0.5, 1.0),
           rightArmOrientation_(1.0, 0.0, 0.0, 0.0), // Default active arm
+          activeArm_(ArmType::LEFT)
+    {
+        topicPrefix_ = topicPrefix;
+        setupCommon();
+        setupDualArmMode();
+    }
+
+    UnifiedTargetTrajectoriesInteractiveMarker::UnifiedTargetTrajectoriesInteractiveMarker(
+        rclcpp::Node::SharedPtr node, const std::string& topicPrefix,
+        DualArmCommandPublisher publishCommand,
+        const double publishRate, std::string frameId)
+        : node_(std::move(node)),
+          mode_(Mode::DUAL_ARM),
+          publishRate_(publishRate),
+          continuousMode_(false),
+          frameId_(std::move(frameId)),
+          dualArmPublishCommand_(std::move(publishCommand.callback)),
+          leftArmPosition_(0.0, 0.5, 1.0),
+          leftArmOrientation_(1.0, 0.0, 0.0, 0.0),
+          rightArmPosition_(0.0, -0.5, 1.0),
+          rightArmOrientation_(1.0, 0.0, 0.0, 0.0),
           activeArm_(ArmType::LEFT)
     {
         topicPrefix_ = topicPrefix;
@@ -135,7 +175,12 @@ namespace ocs2
 
     void UnifiedTargetTrajectoriesInteractiveMarker::setupTrajectoriesPublisher()
     {
-        targetTrajectoriesPublisherPtr_ = std::make_unique<TargetTrajectoriesRosPublisher>(node_, topicPrefix_);
+        const bool usesDirectPublisher = (mode_ == Mode::SINGLE_ARM)
+            ? static_cast<bool>(singleArmPublishCommand_)
+            : static_cast<bool>(dualArmPublishCommand_);
+        if (!usesDirectPublisher) {
+            targetTrajectoriesPublisherPtr_ = std::make_unique<TargetTrajectoriesRosPublisher>(node_, topicPrefix_);
+        }
     }
 
     void UnifiedTargetTrajectoriesInteractiveMarker::setupTimer()
@@ -469,6 +514,11 @@ namespace ocs2
             observation = latestObservation_;
         }
 
+        if (singleArmPublishCommand_) {
+            singleArmPublishCommand_(singleArmPosition_, singleArmOrientation_, observation);
+            return;
+        }
+
         const auto targetTrajectories = singleArmFunction_(singleArmPosition_, singleArmOrientation_, observation);
         targetTrajectoriesPublisherPtr_->publishTargetTrajectories(targetTrajectories);
     }
@@ -479,6 +529,14 @@ namespace ocs2
         {
             std::lock_guard lock(latestObservationMutex_);
             observation = latestObservation_;
+        }
+
+        if (dualArmPublishCommand_) {
+            dualArmPublishCommand_(
+                leftArmPosition_, leftArmOrientation_,
+                rightArmPosition_, rightArmOrientation_,
+                observation);
+            return;
         }
 
         const auto targetTrajectories = dualArmFunction_(

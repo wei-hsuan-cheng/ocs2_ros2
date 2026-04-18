@@ -58,7 +58,8 @@ namespace ocs2 {
          */
         explicit RosReferenceManager(
             std::string topicPrefix,
-            std::shared_ptr<ReferenceManagerInterface> referenceManagerPtr);
+            std::shared_ptr<ReferenceManagerInterface> referenceManagerPtr,
+            bool subscribeTargetTrajectories = true);
 
         ~RosReferenceManager() override = default;
 
@@ -88,6 +89,7 @@ namespace ocs2 {
 
     private:
         const std::string topic_prefix_;
+        const bool subscribe_target_trajectories_;
         rclcpp::Subscription<ocs2_msgs::msg::ModeSchedule>::SharedPtr
         mode_schedule_subscriber_;
         rclcpp::Subscription<ocs2_msgs::msg::MpcTargetTrajectories>::SharedPtr

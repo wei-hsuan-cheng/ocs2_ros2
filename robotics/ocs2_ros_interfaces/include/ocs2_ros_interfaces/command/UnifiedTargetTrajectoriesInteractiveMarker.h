@@ -34,6 +34,23 @@ namespace ocs2
             const Eigen::Vector3d& rightPosition, const Eigen::Quaterniond& rightOrientation,
             const SystemObservation& observation)>;
 
+        using SingleArmPublishCommand = std::function<void(
+            const Eigen::Vector3d& position, const Eigen::Quaterniond& orientation,
+            const SystemObservation& observation)>;
+
+        using DualArmPublishCommand = std::function<void(
+            const Eigen::Vector3d& leftPosition, const Eigen::Quaterniond& leftOrientation,
+            const Eigen::Vector3d& rightPosition, const Eigen::Quaterniond& rightOrientation,
+            const SystemObservation& observation)>;
+
+        struct SingleArmCommandPublisher {
+            SingleArmPublishCommand callback;
+        };
+
+        struct DualArmCommandPublisher {
+            DualArmPublishCommand callback;
+        };
+
         /**
          * Constructor for single arm mode
          *
@@ -52,6 +69,12 @@ namespace ocs2
             double publishRate = 10.0,
             std::string frameId = "world");
 
+        UnifiedTargetTrajectoriesInteractiveMarker(
+            rclcpp::Node::SharedPtr node, const std::string& topicPrefix,
+            SingleArmCommandPublisher publishCommand,
+            double publishRate = 10.0,
+            std::string frameId = "world");
+
         /**
          * Constructor for dual arm mode
          *
@@ -67,6 +90,12 @@ namespace ocs2
         UnifiedTargetTrajectoriesInteractiveMarker(
             rclcpp::Node::SharedPtr node, const std::string& topicPrefix,
             DualArmGoalPoseToTargetTrajectories dualArmGoalPoseToTargetTrajectories,
+            double publishRate = 10.0,
+            std::string frameId = "world");
+
+        UnifiedTargetTrajectoriesInteractiveMarker(
+            rclcpp::Node::SharedPtr node, const std::string& topicPrefix,
+            DualArmCommandPublisher publishCommand,
             double publishRate = 10.0,
             std::string frameId = "world");
 
@@ -145,6 +174,8 @@ namespace ocs2
         singleArmFunction_;
         std::function<TargetTrajectories(const Eigen::Vector3d&, const Eigen::Quaterniond&, const Eigen::Vector3d&,
                                          const Eigen::Quaterniond&, const SystemObservation&)> dualArmFunction_;
+        SingleArmPublishCommand singleArmPublishCommand_;
+        DualArmPublishCommand dualArmPublishCommand_;
 
         // Menu handlers
         std::shared_ptr<interactive_markers::MenuHandler> singleArmMenuHandler_;
