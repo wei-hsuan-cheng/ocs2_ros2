@@ -347,7 +347,7 @@ user / script / RViz / BT
         |   /<robot>_mpc_target
         |   /<robot>_base_mpc_target
         |   /<robot>_joint_mpc_target
-        |   /<robot>_relative_mpc_target
+        |   /<robot>_frame_mpc_target
         |   /<robot>_mode_schedule
         |   /<robot>/env_obstacles
         v
@@ -470,7 +470,7 @@ The upper application layer uses ROS 2 actions and topics.
 
 - `/<robotName>/teleop/execute`
   - provided by `mpc_teleop`
-- `/<robotName>/trajectory_tracking/execute_combined_motion`
+- `/<robotName>/trajectory_tracking/execute_frame_relation_motion`
   - provided by `mpc_cartesian_planner`
 
 `mmbt` acts as a client of these actions in the current workspace.
@@ -488,7 +488,7 @@ The application layer publishes:
 - `/<robotName>_mpc_target`
 - `/<robotName>_base_mpc_target`
 - `/<robotName>_joint_mpc_target`
-- `/<robotName>_relative_mpc_target`
+- `/<robotName>_frame_mpc_target`
 - `/<robotName>_mode_schedule`
 - `/<robotName>/env_obstacles`
 
@@ -503,15 +503,15 @@ These are then consumed by:
 
 Concrete code:
 
-- teleop publishes `*_mpc_target`, `*_base_mpc_target`, `*_relative_mpc_target`, and `*_mode_schedule` in [`teleop_action_server.cpp`](</home/os-weihsuan.cheng/src/wei-hsuan-cheng/mpc_teleop/src/teleop_action_server.cpp:263>)
+- teleop publishes `*_mpc_target`, `*_base_mpc_target`, `*_frame_mpc_target`, and `*_mode_schedule` in [`teleop_action_server.cpp`](</home/os-weihsuan.cheng/src/wei-hsuan-cheng/mpc_teleop/src/teleop_action_server.cpp:263>)
 - trajectory tracking publishes `/<robotName>_mode_schedule` in [`trajectory_tt_action_server.cpp`](</home/os-weihsuan.cheng/src/wei-hsuan-cheng/mpc_cartesian_planner/src/trajectory_tt_action_server.cpp:189>)
 - trajectory publisher owns the target reference topic publishers in [`trajectory_publisher.cpp`](</home/os-weihsuan.cheng/src/wei-hsuan-cheng/mpc_cartesian_planner/src/trajectory_publisher.cpp:27>)
 - `mmbt` publishes mode schedule in [`SwitchMPCModeScheduleBehavior.cpp`](</home/os-weihsuan.cheng/src/wei-hsuan-cheng/mobile_manipulator_behaviortree/mmbt/src/SwitchMPCModeScheduleBehavior.cpp:103>) and [`SwitchMPCModeScheduleBehavior.cpp`](</home/os-weihsuan.cheng/src/wei-hsuan-cheng/mobile_manipulator_behaviortree/mmbt/src/SwitchMPCModeScheduleBehavior.cpp:191>)
 - `mmbt` publishes environment obstacles in [`UpdateStaticEnvObstaclesBehavior.cpp`](</home/os-weihsuan.cheng/src/wei-hsuan-cheng/mobile_manipulator_behaviortree/mmbt/src/UpdateStaticEnvObstaclesBehavior.cpp:32>) and [`UpdateStaticEnvObstaclesBehavior.cpp`](</home/os-weihsuan.cheng/src/wei-hsuan-cheng/mobile_manipulator_behaviortree/mmbt/src/UpdateStaticEnvObstaclesBehavior.cpp:310>)
 - MPC node subscribes mode schedule through [`RosReferenceManager::subscribe()`](</home/os-weihsuan.cheng/src/wei-hsuan-cheng/ocs2_ros2/robotics/ocs2_ros_interfaces/src/synchronized_module/RosReferenceManager.cpp:48>)
 - MPC node creates the decorator and activates its subscriptions in [`MobileManipulatorMpcNode.cpp`](</home/os-weihsuan.cheng/src/wei-hsuan-cheng/mpc_controller/src/mpc/MobileManipulatorMpcNode.cpp:136>)
-- MPC node subscribes base/joint/relative/env-obstacle side channels in [`MobileManipulatorMpcNode.cpp`](</home/os-weihsuan.cheng/src/wei-hsuan-cheng/mpc_controller/src/mpc/MobileManipulatorMpcNode.cpp:142>)
-- controller side subscribes base/joint/relative/env-obstacle side channels in [`OCS2Controller.cpp`](</home/os-weihsuan.cheng/src/wei-hsuan-cheng/mpc_controller/src/control/OCS2Controller.cpp:514>)
+- MPC node subscribes base/joint/frame-relation/env-obstacle side channels in [`MobileManipulatorMpcNode.cpp`](</home/os-weihsuan.cheng/src/wei-hsuan-cheng/mpc_controller/src/mpc/MobileManipulatorMpcNode.cpp:142>)
+- controller side subscribes base/joint/frame-relation/env-obstacle side channels in [`OCS2Controller.cpp`](</home/os-weihsuan.cheng/src/wei-hsuan-cheng/mpc_controller/src/control/OCS2Controller.cpp:514>)
 
 Important note about `mode_schedule`:
 
@@ -530,12 +530,12 @@ That duplication is intentional in the current stack:
 | Interface | Transport | Producer | Consumer | Purpose |
 | --- | --- | --- | --- | --- |
 | `/<robotName>/teleop/execute` | ROS 2 action | user / BT client | `mpc_teleop` | start/stop teleop sessions |
-| `/<robotName>/trajectory_tracking/execute_combined_motion` | ROS 2 action | user / BT client | `mpc_cartesian_planner` | trajectory-tracking goals |
+| `/<robotName>/trajectory_tracking/execute_frame_relation_motion` | ROS 2 action | user / BT client | `mpc_cartesian_planner` | trajectory-tracking goals |
 | `/<robotName>_mode_schedule` | ROS 2 topic | teleop / planner / BT | MPC node via `RosReferenceManager`, plus optional `mmbt` echo subscriber | hybrid mode schedule |
 | `/<robotName>_mpc_target` | ROS 2 topic | teleop / planner | MPC node via `RosReferenceManager` | primary target trajectories |
 | `/<robotName>_base_mpc_target` | ROS 2 topic | teleop / planner | MPC node, controller-side ref mgr | base target stream |
 | `/<robotName>_joint_mpc_target` | ROS 2 topic | planner | MPC node, controller-side ref mgr | joint target stream |
-| `/<robotName>_relative_mpc_target` | ROS 2 topic | teleop / planner | MPC node, controller-side ref mgr | relative EE target stream |
+| `/<robotName>_frame_mpc_target` | ROS 2 topic | teleop / planner | MPC node, controller-side ref mgr | frame-relation target stream |
 | `/<robotName>/env_obstacles` | ROS 2 topic | BT / environment publisher | MPC node, controller-side ref mgr | obstacle updates |
 | `/<robotName>_mpc_observation` | ROS 2 topic | MRT bridge | MPC node | current observation for solver |
 | `/<robotName>_mpc_policy` | ROS 2 topic | MPC node | MRT bridge | latest flattened policy |
