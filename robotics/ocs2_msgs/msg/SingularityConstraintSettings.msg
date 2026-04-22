@@ -1,0 +1,5 @@
+string name
+string source_frame
+string target_frame
+float64 minimum_manipulability
+float64 damping

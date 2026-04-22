@@ -21,6 +21,8 @@ rosidl_generate_interfaces(${PROJECT_NAME}
         "msg/Constraint.msg"
         "msg/FrameRelationTarget.msg"
         "msg/FrameRelationTargetArray.msg"
+        "msg/SingularityConstraintSettings.msg"
+        "msg/SingularityConstraintSettingsArray.msg"
         "srv/Reset.srv"
         DEPENDENCIES geometry_msgs std_msgs
 )
