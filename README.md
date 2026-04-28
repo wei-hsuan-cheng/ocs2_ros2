@@ -62,13 +62,14 @@ Tested system and ROS 2 version:
 * Clone the repository (with all submodules in `.gitmodules`)
     ```bash
     cd ~/ros2_ws/src
-    git clone --recursive https://github.com/wei-hsuan-cheng/ocs2_ros2.git -b humble
+    git clone https://github.com/wei-hsuan-cheng/ocs2_ros2.git \
+        -b humble_frame_relation
     ```
 
-    If you forgot `--recursive`, you can run:
+    Clone all sub-repo with vcs
     ```bash
     cd ~/ros2_ws/src/ocs2_ros2
-    git submodule update --init --recursive
+    vcs import < ocs2_ros2.repos
     ```
 
 * `rosdep`
