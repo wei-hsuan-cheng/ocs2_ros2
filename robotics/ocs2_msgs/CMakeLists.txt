@@ -14,6 +14,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
         "msg/MpcObservation.msg"
         "msg/MpcPerformanceIndices.msg"
         "msg/MpcTargetTrajectories.msg"
+        "msg/JointPositionTarget.msg"
         "msg/ControllerData.msg"
         "msg/MpcFlattenedController.msg"
         "msg/LagrangianMetrics.msg"
