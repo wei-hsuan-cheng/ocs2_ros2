@@ -1,7 +1,9 @@
 # Dynamics MPC target trajectories.
 #
-# The state trajectory is in joint-space target order:
-#   q or [q, v]
+# command_type selects how state_trajectory samples are parsed:
+#   joint_position: target is q only
+#   joint_velocity: target is v only
+#   joint:          target is [q, v]
 #
 # Input target trajectories are separated by physical meaning. Consumers map
 # these fields into their own model input:
@@ -9,7 +11,7 @@
 #   forward dynamics: u = [joint_torque]
 std_msgs/Header header
 
-# Currently supported: joint
+# Supported values: joint_position, joint_velocity, joint
 string command_type
 
 # Joint order used by state, acceleration, and torque target samples.
