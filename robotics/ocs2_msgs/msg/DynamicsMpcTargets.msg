@@ -38,6 +38,14 @@ std_msgs/Float64MultiArray ee_motion_pose_tracking_weights
 std_msgs/Float64MultiArray ee_motion_twist_tracking_weights
 
 ####################################################################################################
+# Optional EE twist representation frame.
+# Empty: use controller YAML default.
+# "base": twist is represented in the global/base-aligned frame.
+# "ee": twist is represented in the end-effector local frame.
+####################################################################################################
+string ee_motion_twist_frame
+
+####################################################################################################
 # Time trajectory and state target trajectory
 ####################################################################################################
 float64[] time_trajectory
