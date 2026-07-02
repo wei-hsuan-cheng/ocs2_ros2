@@ -46,6 +46,13 @@ std_msgs/Float64MultiArray ee_motion_twist_tracking_weights
 string ee_motion_twist_frame
 
 ####################################################################################################
+# Optional EE wrench representation frame.
+# Empty, "base", "global", or "world": wrench is already represented in the global/base-aligned frame.
+# "ee", "end_effector", or "end_effector_frame": wrench is represented in the EE local frame.
+####################################################################################################
+string ee_wrench_frame
+
+####################################################################################################
 # Time trajectory and state target trajectory
 ####################################################################################################
 float64[] time_trajectory
