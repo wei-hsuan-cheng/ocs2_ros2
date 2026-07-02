@@ -47,7 +47,8 @@ string ee_motion_twist_frame
 
 ####################################################################################################
 # Optional EE wrench representation frame.
-# Empty, "base", "global", or "world": wrench is already represented in the global/base-aligned frame.
+# Empty means controller default frame.
+# "base", "global", or "world": wrench is already represented in the global/base-aligned frame.
 # "ee", "end_effector", or "end_effector_frame": wrench is represented in the EE local frame.
 ####################################################################################################
 string ee_wrench_frame
