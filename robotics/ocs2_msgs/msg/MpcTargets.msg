@@ -8,6 +8,7 @@ std_msgs/Header header
 # base | joint | frame_relation
 # base_joint | base_frame_relation | joint_frame_relation
 # base_joint_frame_relation
+# hold_joint
 ####################################################################################################
 string command_type
 
