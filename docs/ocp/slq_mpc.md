@@ -438,6 +438,16 @@ $$
 
 This is iLQR/SLQ as a solver for the **single-shot** finite-horizon nonlinear OCP.
 
+### The loop
+
+$$\{x_k^n, u_k^n\}^{(i)} \;\xrightarrow{\text{linearize/quadratize}}\; \{A_k, B_k, Q_k, R_k, q_k, r_k\} \;\xrightarrow{\text{backward}}\; \{K_k, l_k\} \;\xrightarrow{\text{rollout}(\alpha)}\; \{x_k^n, u_k^n\}^{(i+1)}$$
+
+### Convergence
+
+Stop when $\|l_k\| < \epsilon$ for all $k$ (equivalently $g_k \approx 0$, stationarity) or $|\Delta \mathcal{J}| < \epsilon_J$. At convergence the feedforward vanishes and the converged policy is the time-varying affine law:
+
+$$u_k(x_k) = u_k^n + l_k + K_k(x_k - x_k^n) \;\xrightarrow{\;l_k \to 0\;}\; u_k^n + K_k(x_k - x_k^n)$$
+
 ---
 
 ## 10. SLQ-MPC: using iLQR in a receding-horizon loop
@@ -491,7 +501,20 @@ Thus:
 
 ---
 
-## 11. Appendices
+## 11. Summary: Cost structure per iteration level
+
+There will be totally four loops involved in the SLQ-MPC:
+
+| Loop | Iterates over | Work per step | Produces |
+|---|---|---|---|
+| Backward pass | $k$: $N-1 \to 0$, once | matrix algebra, one $H_k^{-1}$ | $\{K_k, l_k\}$, $(P_k, p_k)$ |
+| Line search | $\alpha$: few trials ($1, \tfrac{1}{2}, \tfrac{1}{4}, \dots$) | one full nonlinear rollout over $k$ each | accepted $\alpha$, new $\{x_k^n, u_k^n\}$ |
+| Outer (SLQ) | $i$: until converged (or max iters) | 1 linearization + 1 backward pass + line search | monotonically decreasing $\mathcal{J}$ |
+| MPC (receding horizon) | $t$: every control cycle | measure $x(t)$, warm-start, few outer iters, apply $u_0^\star$, shift | closed-loop control $u_{\text{applied}}(t)$ |
+
+---
+
+## 12. Appendices
 
 <details>
 <summary>🔽 Appendix A: Line search and the role of feedback in SLQ/iLQR</summary>
