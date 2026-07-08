@@ -5,6 +5,7 @@ project(ocs2_msgs)
 find_package(ament_cmake REQUIRED)
 find_package(rosidl_default_generators REQUIRED)
 find_package(geometry_msgs REQUIRED)
+find_package(trajectory_msgs REQUIRED)
 find_package(std_msgs REQUIRED)
 
 rosidl_generate_interfaces(${PROJECT_NAME}
@@ -14,6 +15,9 @@ rosidl_generate_interfaces(${PROJECT_NAME}
         "msg/MpcObservation.msg"
         "msg/MpcPerformanceIndices.msg"
         "msg/MpcTargetTrajectories.msg"
+        "msg/MpcFrameRelations.msg"
+        "msg/MpcJoints.msg"
+        "msg/MpcTwists.msg"
         "msg/MpcTargets.msg"
         "msg/DynamicsMpcTargets.msg"
         "msg/JointPositionTarget.msg"
@@ -27,7 +31,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
         "msg/SingularityConstraintSettings.msg"
         "msg/SingularityConstraintSettingsArray.msg"
         "srv/Reset.srv"
-        DEPENDENCIES geometry_msgs std_msgs
+        DEPENDENCIES geometry_msgs std_msgs trajectory_msgs
 )
 
 ament_package()

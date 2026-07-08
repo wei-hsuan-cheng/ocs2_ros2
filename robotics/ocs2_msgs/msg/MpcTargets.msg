@@ -23,7 +23,7 @@ std_msgs/Float64MultiArray joint_tracking_weights
 ####################################################################################################
 # Frame relation tracking
 # string arrays for frame relation pair (source, target)
-# frame relation cost function weights for each frame pair
+# frame relation cost function weights for each frame pair; size of 6 [translation xyz, quaternion-vector orientation residual]
 ####################################################################################################
 string[] source_frames
 string[] target_frames
