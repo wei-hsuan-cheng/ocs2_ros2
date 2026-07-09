@@ -72,6 +72,11 @@ Tested system and ROS 2 version:
     vcs import < ocs2_ros2.repos
     ```
 
+* Install `pinocchio` library
+    ```bash
+    sudo apt install ros-humble-pinocchio=3.9.0-1jammy.20260214.053255
+    ```
+
 * `rosdep`
     ```bash
     cd ~/ros2_ws
