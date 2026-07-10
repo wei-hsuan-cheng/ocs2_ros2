@@ -24,6 +24,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
         "msg/BezierTrajectory.msg"
         "msg/ThreeDofPointTS.msg"
         "msg/ThreeDofPath.msg"
+        "msg/WalkingVelocityCommand.msg"
         "msg/MpcFrameRelations.msg"
         "msg/MpcJoints.msg"
         "msg/MpcTwists.msg"
