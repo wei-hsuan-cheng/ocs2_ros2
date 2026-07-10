@@ -35,6 +35,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 // soft inequalities
 #include <ocs2_core/penalties/penalties/DoubleSidedPenalty.h>
+#include <ocs2_core/penalties/penalties/PieceWisePolynomialBarrierPenalty.h>
 #include <ocs2_core/penalties/penalties/RelaxedBarrierPenalty.h>
 #include <ocs2_core/penalties/penalties/SquaredHingePenalty.h>
 

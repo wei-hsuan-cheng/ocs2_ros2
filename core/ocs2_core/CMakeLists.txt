@@ -117,6 +117,7 @@ add_library(${PROJECT_NAME}
         src/soft_constraint/StateInputSoftBoxConstraint.cpp
         src/penalties/MultidimensionalPenalty.cpp
         src/penalties/Penalties.cpp
+        src/penalties/penalties/PieceWisePolynomialBarrierPenalty.cpp
         src/penalties/penalties/RelaxedBarrierPenalty.cpp
         src/penalties/penalties/SquaredHingePenalty.cpp
         src/thread_support/ThreadPool.cpp
