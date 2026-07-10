@@ -122,6 +122,9 @@ namespace ocs2 {
          */
         vector_t initializeMultipliers(size_t numConstraints) const;
 
+        /** Gets mutable access to the underlying penalty function array, e.g. for runtime parameter tuning. */
+        std::vector<std::unique_ptr<augmented::AugmentedPenaltyBase> > &getPenaltyPtrArray() { return penaltyPtrArray_; }
+
     private:
         std::tuple<scalar_t, vector_t, vector_t> getPenaltyValue1stDev2ndDev(
             scalar_t t, const vector_t &h, const vector_t *l) const;

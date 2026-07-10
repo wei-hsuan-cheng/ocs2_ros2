@@ -53,6 +53,12 @@ class QuadraticStateCost : public StateCost {
                                                                  const TargetTrajectories& targetTrajectories,
                                                                  const PreComputation&) const final;
 
+  /** Sets the cost matrix at runtime. */
+  void setGains(matrix_t Q);
+
+  /** Gets the current cost matrix. */
+  void getGains(matrix_t& Q) const;
+
  protected:
   QuadraticStateCost(const QuadraticStateCost& rhs) = default;
 

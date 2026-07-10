@@ -98,6 +98,9 @@ namespace ocs2 {
          */
         bool getTermIndex(const std::string &name, size_t &index) const;
 
+        /** Gets a copy of the term-name-to-index map, e.g. for enumerating terms at runtime. */
+        [[nodiscard]] std::unordered_map<std::string, size_t> getTermNameMap() const { return termNameMap_; }
+
     protected:
         /** Copy constructor */
         Collection(const Collection &other);

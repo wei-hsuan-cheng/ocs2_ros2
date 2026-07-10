@@ -61,6 +61,16 @@ namespace ocs2 {
     }
 
 
+    void QuadraticStateCost::setGains(matrix_t Q) {
+        Q_ = std::move(Q);
+    }
+
+
+    void QuadraticStateCost::getGains(matrix_t &Q) const {
+        Q = Q_;
+    }
+
+
     vector_t QuadraticStateCost::getStateDeviation(scalar_t time, const vector_t &state,
                                                    const TargetTrajectories &targetTrajectories) const {
         return state - targetTrajectories.getDesiredState(time);

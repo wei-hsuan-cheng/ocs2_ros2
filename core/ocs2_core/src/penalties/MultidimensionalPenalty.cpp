@@ -63,6 +63,10 @@ namespace ocs2 {
                 throw std::runtime_error("[" + name() + "] This penalty is only applicable to soft constraints!");
             }
 
+            void setParameters(const vector_t &parameters) override { penaltyPtr_->setParameters(parameters); }
+
+            void getParameters(vector_t &parameters) const override { penaltyPtr_->getParameters(parameters); }
+
         private:
             PenaltyBaseWrapper(const PenaltyBaseWrapper &other) : penaltyPtr_(other.penaltyPtr_->clone()) {
             }

@@ -52,6 +52,12 @@ namespace ocs2 {
         /** Check constraint activity */
         [[nodiscard]] virtual bool isActive(scalar_t time) const { return true; }
 
+        /** Enable or disable this constraint term at runtime. Derived classes may override to support toggling. */
+        virtual void setActive(bool active) {}
+
+        /** Get the runtime activation flag of this constraint term. */
+        [[nodiscard]] virtual bool getActive() const { return true; }
+
         /** Get the size of the constraint vector at given time */
         [[nodiscard]] virtual size_t getNumConstraints(scalar_t time) const = 0;
 

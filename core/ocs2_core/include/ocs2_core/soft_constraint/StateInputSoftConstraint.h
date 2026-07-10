@@ -89,6 +89,12 @@ class StateInputSoftConstraint final : public StateInputCost {
                                                                  const TargetTrajectories& /* targetTrajectories */,
                                                                  const PreComputation& preComp) const override;
 
+  /** Gets mutable access to the penalty, e.g. for runtime parameter tuning. */
+  MultidimensionalPenalty& getPenalty() { return penalty_; }
+
+  /** Gets mutable access to the wrapped constraint pointer. */
+  std::unique_ptr<StateInputConstraint>& getConstraintPtr() { return constraintPtr_; }
+
  private:
   StateInputSoftConstraint(const StateInputSoftConstraint& other);
 

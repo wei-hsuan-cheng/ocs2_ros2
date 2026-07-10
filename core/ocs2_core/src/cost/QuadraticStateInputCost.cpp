@@ -87,6 +87,24 @@ namespace ocs2 {
     }
 
 
+    void QuadraticStateInputCost::setGains(matrix_t Q, matrix_t R, matrix_t P /* = matrix_t() */) {
+        Q_ = std::move(Q);
+        R_ = std::move(R);
+        P_ = std::move(P);
+        if (P_.size() > 0) {
+            assert(P_.rows() == R_.rows());
+            assert(P_.cols() == Q_.rows());
+        }
+    }
+
+
+    void QuadraticStateInputCost::getGains(matrix_t &Q, matrix_t &R, matrix_t &P) const {
+        Q = Q_;
+        R = R_;
+        P = P_;
+    }
+
+
     std::pair<vector_t, vector_t> QuadraticStateInputCost::getStateInputDeviation(
         const scalar_t time, const vector_t &state, const vector_t &input,
         const TargetTrajectories &targetTrajectories) const {

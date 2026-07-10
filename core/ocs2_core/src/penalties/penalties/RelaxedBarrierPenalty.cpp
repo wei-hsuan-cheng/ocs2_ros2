@@ -29,6 +29,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <ocs2_core/penalties/penalties/RelaxedBarrierPenalty.h>
 
+#include <stdexcept>
+
 namespace ocs2 {
     scalar_t RelaxedBarrierPenalty::getValue(scalar_t t, scalar_t h) const {
         if (h > config_.delta) {
@@ -52,5 +54,21 @@ namespace ocs2 {
             return config_.mu / (h * h);
         }
         return config_.mu / (config_.delta * config_.delta);
+    }
+
+
+    void RelaxedBarrierPenalty::setParameters(const vector_t &parameters) {
+        if (parameters.size() != 2) {
+            throw std::runtime_error("[RelaxedBarrierPenalty::setParameters] Invalid number of parameters, expected [mu, delta].");
+        }
+        config_.mu = parameters[0];
+        config_.delta = parameters[1];
+    }
+
+
+    void RelaxedBarrierPenalty::getParameters(vector_t &parameters) const {
+        parameters.resize(2);
+        parameters[0] = config_.mu;
+        parameters[1] = config_.delta;
     }
 } // namespace ocs2

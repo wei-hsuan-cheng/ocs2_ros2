@@ -89,6 +89,9 @@ class StateSoftConstraint final : public StateCost {
                                                                  const TargetTrajectories& /* targetTrajectories */,
                                                                  const PreComputation& preComp) const override;
 
+  /** Gets mutable access to the penalty, e.g. for runtime parameter tuning. */
+  MultidimensionalPenalty& getPenalty() { return penalty_; }
+
  private:
   StateSoftConstraint(const StateSoftConstraint& other);
 

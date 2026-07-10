@@ -80,6 +80,20 @@ class PenaltyBase {
    */
   virtual scalar_t getSecondDerivative(scalar_t t, scalar_t h) const = 0;
 
+  /**
+   * Sets the parameters of the penalty function at runtime.
+   *
+   * @param [in] parameters: The new parameter values. The interpretation and expected size depend on the derived class.
+   */
+  virtual void setParameters(const vector_t& /*parameters*/) {}
+
+  /**
+   * Gets the current parameters of the penalty function.
+   *
+   * @param [out] parameters: The current parameter values. The interpretation and size depend on the derived class.
+   */
+  virtual void getParameters(vector_t& /*parameters*/) const {}
+
  protected:
   PenaltyBase(const PenaltyBase& other) = default;
 };
