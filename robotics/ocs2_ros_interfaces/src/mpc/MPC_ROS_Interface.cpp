@@ -246,7 +246,7 @@ namespace ocs2 {
 
         // run MPC
         bool controllerIsUpdated =
-                mpc_.run(currentObservation.time, currentObservation.state);
+                mpc_.run(currentObservation.time, currentObservation.state, currentObservation.mode);
         if (!controllerIsUpdated) {
             return;
         }

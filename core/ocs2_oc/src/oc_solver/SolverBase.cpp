@@ -39,7 +39,12 @@ namespace ocs2 {
 
 
     void SolverBase::run(scalar_t initTime, const vector_t &initState, scalar_t finalTime) {
-        preRun(initTime, initState, finalTime);
+        run(initTime, initState, 0, finalTime);
+    }
+
+
+    void SolverBase::run(scalar_t initTime, const vector_t &initState, const size_t initMode, scalar_t finalTime) {
+        preRun(initTime, initState, initMode, finalTime);
         runImpl(initTime, initState, finalTime);
         postRun();
     }
@@ -47,7 +52,13 @@ namespace ocs2 {
 
     void SolverBase::run(scalar_t initTime, const vector_t &initState, scalar_t finalTime,
                          const ControllerBase *externalControllerPtr) {
-        preRun(initTime, initState, finalTime);
+        run(initTime, initState, 0, finalTime, externalControllerPtr);
+    }
+
+
+    void SolverBase::run(scalar_t initTime, const vector_t &initState, const size_t initMode, scalar_t finalTime,
+                         const ControllerBase *externalControllerPtr) {
+        preRun(initTime, initState, initMode, finalTime);
         runImpl(initTime, initState, finalTime, externalControllerPtr);
         postRun();
     }
@@ -55,7 +66,13 @@ namespace ocs2 {
 
     void SolverBase::run(scalar_t initTime, const vector_t &initState, scalar_t finalTime,
                          const PrimalSolution &primalSolution) {
-        preRun(initTime, initState, finalTime);
+        run(initTime, initState, 0, finalTime, primalSolution);
+    }
+
+
+    void SolverBase::run(scalar_t initTime, const vector_t &initState, const size_t initMode, scalar_t finalTime,
+                         const PrimalSolution &primalSolution) {
+        preRun(initTime, initState, initMode, finalTime);
         runImpl(initTime, initState, finalTime, primalSolution);
         postRun();
     }
@@ -75,7 +92,12 @@ namespace ocs2 {
 
 
     void SolverBase::preRun(scalar_t initTime, const vector_t &initState, scalar_t finalTime) {
-        referenceManagerPtr_->preSolverRun(initTime, finalTime, initState);
+        preRun(initTime, initState, 0, finalTime);
+    }
+
+
+    void SolverBase::preRun(scalar_t initTime, const vector_t &initState, const size_t initMode, scalar_t finalTime) {
+        referenceManagerPtr_->preSolverRun(initTime, finalTime, initState, initMode);
 
         for (auto &module: synchronizedModules_) {
             module->preSolverRun(initTime, finalTime, initState, *referenceManagerPtr_);

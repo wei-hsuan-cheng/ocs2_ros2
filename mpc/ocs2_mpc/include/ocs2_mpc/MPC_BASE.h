@@ -66,6 +66,15 @@ namespace ocs2 {
          */
         virtual bool run(scalar_t currentTime, const vector_t &currentState);
 
+        /**
+         * The main routine of MPC which runs MPC for the given state, mode, and time.
+         *
+         * @param [in] currentTime: The given time.
+         * @param [in] currentState: The given state.
+         * @param [in] currentMode: The observed mode at the given time.
+         */
+        bool run(scalar_t currentTime, const vector_t &currentState, size_t currentMode);
+
         /** Gets a pointer to the underlying solver used in the MPC. */
         virtual SolverBase *getSolverPtr() = 0;
 
@@ -86,7 +95,7 @@ namespace ocs2 {
          * @param [in] initState: Initial state.
          * @param [in] finalTime: Final time. This value can be adjusted by the optimizer.
          */
-        virtual void calculateController(scalar_t initTime, const vector_t &initState, scalar_t finalTime) = 0;
+        virtual void calculateController(scalar_t initTime, const vector_t &initState, size_t initMode, scalar_t finalTime) = 0;
 
         /** Whether this is the first iteration of MPC or not. */
         bool isFirstMpcRun() const { return initRun_; }

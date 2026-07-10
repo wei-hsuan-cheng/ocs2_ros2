@@ -22,9 +22,9 @@ ocs2::GaussNewtonDDP_MPC::GaussNewtonDDP_MPC(const mpc::Settings &mpcSettings, d
 }
 
 void ocs2::GaussNewtonDDP_MPC::calculateController(const scalar_t initTime, const vector_t &initState,
-                                                   const scalar_t finalTime) {
+                                                   const size_t initMode, const scalar_t finalTime) {
     if (settings().coldStart_) {
         ddpPtr_->reset();
     }
-    ddpPtr_->run(initTime, initState, finalTime);
+    ddpPtr_->run(initTime, initState, initMode, finalTime);
 }

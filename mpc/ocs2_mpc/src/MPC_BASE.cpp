@@ -43,6 +43,11 @@ namespace ocs2 {
 
 
     bool MPC_BASE::run(const scalar_t currentTime, const vector_t &currentState) {
+        return run(currentTime, currentState, 0);
+    }
+
+
+    bool MPC_BASE::run(const scalar_t currentTime, const vector_t &currentState, const size_t currentMode) {
         // check if the current time exceeds the solver final limit
         if (!initRun_ && currentTime >= getSolverPtr()->getFinalTime()) {
             std::cerr << "WARNING: The MPC time-horizon is smaller than the MPC starting time.\n";
@@ -65,7 +70,7 @@ namespace ocs2 {
         }
 
         // calculate the MPC policy
-        calculateController(currentTime, currentState, finalTime);
+        calculateController(currentTime, currentState, currentMode, finalTime);
 
         // set initRun flag to false
         initRun_ = false;

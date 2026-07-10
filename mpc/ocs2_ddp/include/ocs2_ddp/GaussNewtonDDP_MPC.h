@@ -61,7 +61,7 @@ namespace ocs2 {
         [[nodiscard]] const GaussNewtonDDP *getSolverPtr() const override { return ddpPtr_.get(); }
 
     private:
-        void calculateController(scalar_t initTime, const vector_t &initState, scalar_t finalTime) override;
+        void calculateController(scalar_t initTime, const vector_t &initState, size_t initMode, scalar_t finalTime) override;
 
         std::unique_ptr<GaussNewtonDDP> ddpPtr_;
     };

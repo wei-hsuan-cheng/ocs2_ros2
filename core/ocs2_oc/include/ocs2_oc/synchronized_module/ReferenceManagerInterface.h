@@ -59,7 +59,19 @@ class ReferenceManagerInterface {
    * @param [in] finalTime : Final time of the optimization horizon.
    * @param [in] initState : State at the start of the optimization horizon.
    */
-  virtual void preSolverRun(scalar_t initTime, scalar_t finalTime, const vector_t& initState){};
+  void preSolverRun(scalar_t initTime, scalar_t finalTime, const vector_t& initState) {
+    preSolverRun(initTime, finalTime, initState, 0);
+  };
+
+  /**
+   * The method is called right before the solver runs and before any other SolverSynchronizedModule::preSolverRun().
+   *
+   * @param [in] initTime : Start time of the optimization horizon.
+   * @param [in] finalTime : Final time of the optimization horizon.
+   * @param [in] initState : State at the start of the optimization horizon.
+   * @param [in] initMode : Observed mode at the start of the optimization horizon.
+   */
+  virtual void preSolverRun(scalar_t initTime, scalar_t finalTime, const vector_t& initState, size_t initMode){};
 
   /** Returns a const reference to the active ModeSchedule. */
   virtual const ModeSchedule& getModeSchedule() const = 0;

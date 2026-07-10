@@ -36,8 +36,14 @@ namespace ocs2 {
 
 
     void ReferenceManager::preSolverRun(const scalar_t initTime, const scalar_t finalTime, const vector_t &initState) {
+        preSolverRun(initTime, finalTime, initState, 0);
+    }
+
+
+    void ReferenceManager::preSolverRun(const scalar_t initTime, const scalar_t finalTime, const vector_t &initState,
+                                        const size_t initMode) {
         targetTrajectories_.updateFromBuffer();
         modeSchedule_.updateFromBuffer();
-        modifyReferences(initTime, finalTime, initState, targetTrajectories_.get(), modeSchedule_.get());
+        modifyReferences(initTime, finalTime, initState, initMode, targetTrajectories_.get(), modeSchedule_.get());
     }
 } // namespace ocs2

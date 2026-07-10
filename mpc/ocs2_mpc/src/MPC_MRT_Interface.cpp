@@ -70,7 +70,7 @@ namespace ocs2 {
             currentObservation = currentObservation_;
         }
 
-        bool controllerIsUpdated = mpc_.run(currentObservation.time, currentObservation.state);
+        bool controllerIsUpdated = mpc_.run(currentObservation.time, currentObservation.state, currentObservation.mode);
         if (!controllerIsUpdated) {
             return;
         }

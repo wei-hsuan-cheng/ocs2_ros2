@@ -52,8 +52,13 @@ class ReferenceManagerDecorator : public ReferenceManagerInterface {
   ~ReferenceManagerDecorator() override = default;
 
   void preSolverRun(scalar_t initTime, scalar_t finalTime,
-                    const vector_t& initState) override {
+                    const vector_t& initState) {
     referenceManagerPtr_->preSolverRun(initTime, finalTime, initState);
+  }
+
+  void preSolverRun(scalar_t initTime, scalar_t finalTime,
+                    const vector_t& initState, size_t initMode) override {
+    referenceManagerPtr_->preSolverRun(initTime, finalTime, initState, initMode);
   }
 
   const ModeSchedule& getModeSchedule() const override {

@@ -39,7 +39,13 @@ namespace ocs2 {
 
 
     void LoopshapingReferenceManager::preSolverRun(scalar_t initTime, scalar_t finalTime, const vector_t &initState) {
+        preSolverRun(initTime, finalTime, initState, 0);
+    }
+
+
+    void LoopshapingReferenceManager::preSolverRun(scalar_t initTime, scalar_t finalTime, const vector_t &initState,
+                                                   const size_t initMode) {
         const vector_t systemState = loopshapingDefinitionPtr_->getSystemState(initState);
-        referenceManagerPtr_->preSolverRun(initTime, finalTime, systemState);
+        referenceManagerPtr_->preSolverRun(initTime, finalTime, systemState, initMode);
     }
 } // namespace ocs2

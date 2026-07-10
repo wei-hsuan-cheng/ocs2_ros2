@@ -76,6 +76,16 @@ namespace ocs2 {
         void run(scalar_t initTime, const vector_t &initState, scalar_t finalTime);
 
         /**
+         * The main routine of solver which runs the optimizer for a given initial state, initial mode, initial time, and final time.
+         *
+         * @param [in] initTime: The initial time.
+         * @param [in] initState: The initial state.
+         * @param [in] initMode: The observed mode at the initial time.
+         * @param [in] finalTime: The final time.
+         */
+        void run(scalar_t initTime, const vector_t &initState, size_t initMode, scalar_t finalTime);
+
+        /**
          * The main routine of solver which runs the optimizer for a given initial state, initial time, final time, and
          * initial controller.
          *
@@ -91,6 +101,19 @@ namespace ocs2 {
                  const ControllerBase *externalControllerPtr);
 
         /**
+         * The main routine of solver which runs the optimizer for a given initial state, initial mode, initial time,
+         * final time, and initial controller.
+         *
+         * @param [in] initTime: The initial time.
+         * @param [in] initState: The initial state.
+         * @param [in] initMode: The observed mode at the initial time.
+         * @param [in] finalTime: The final time.
+         * @param [in] externalControllerPtr: A pointer to the initial control policies.
+         */
+        void run(scalar_t initTime, const vector_t &initState, size_t initMode, scalar_t finalTime,
+                 const ControllerBase *externalControllerPtr);
+
+        /**
          * The main routine of solver which runs the optimizer for a given initial state, initial time, final time, and
          * initial primal solution.
          *
@@ -100,6 +123,19 @@ namespace ocs2 {
          * @param [in] primalSolution: The primal solution to initialize the solver with.
          */
         void run(scalar_t initTime, const vector_t &initState, scalar_t finalTime,
+                 const PrimalSolution &primalSolution);
+
+        /**
+         * The main routine of solver which runs the optimizer for a given initial state, initial mode, initial time,
+         * final time, and initial primal solution.
+         *
+         * @param [in] initTime: The initial time.
+         * @param [in] initState: The initial state.
+         * @param [in] initMode: The observed mode at the initial time.
+         * @param [in] finalTime: The final time.
+         * @param [in] primalSolution: The primal solution to initialize the solver with.
+         */
+        void run(scalar_t initTime, const vector_t &initState, size_t initMode, scalar_t finalTime,
                  const PrimalSolution &primalSolution);
 
         /**
@@ -266,6 +302,8 @@ namespace ocs2 {
                              const PrimalSolution &primalSolution) = 0;
 
         void preRun(scalar_t initTime, const vector_t &initState, scalar_t finalTime);
+
+        void preRun(scalar_t initTime, const vector_t &initState, size_t initMode, scalar_t finalTime);
 
         void postRun();
 

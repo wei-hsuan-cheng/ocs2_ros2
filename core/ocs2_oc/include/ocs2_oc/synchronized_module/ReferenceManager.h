@@ -45,7 +45,9 @@ class ReferenceManager : public ReferenceManagerInterface {
 
   ~ReferenceManager() override = default;
 
-  void preSolverRun(scalar_t initTime, scalar_t finalTime, const vector_t& initState) override;
+  void preSolverRun(scalar_t initTime, scalar_t finalTime, const vector_t& initState);
+
+  void preSolverRun(scalar_t initTime, scalar_t finalTime, const vector_t& initState, size_t initMode) override;
 
   const ModeSchedule& getModeSchedule() const override { return modeSchedule_.get(); }
   void setModeSchedule(const ModeSchedule& modeSchedule) override { modeSchedule_.setBuffer(modeSchedule); }
@@ -73,6 +75,24 @@ class ReferenceManager : public ReferenceManagerInterface {
    */
   virtual void modifyReferences(scalar_t initTime, scalar_t finalTime, const vector_t& initState, TargetTrajectories& targetTrajectories,
                                 ModeSchedule& modeSchedule) {}
+
+  /**
+   * Modifies the active ModeSchedule and TargetTrajectories with the observed initial mode.
+   *
+   * @param [in] initTime : Start time of the optimization horizon.
+   * @param [in] finalTime : Final time of the optimization horizon.
+   * @param [in] initState : State at the start of the optimization horizon.
+   * @param [in] initMode : Observed mode at the start of the optimization horizon.
+   * @param [in, out] targetTrajectories : The updated TargetTrajectories. If setTargetTrajectories() has been called before,
+   * TargetTrajectories is already updated by the set value.
+   * @param [in, out] modeSchedule : The updated ModeSchedule. If setModeSchedule() has been called before, modeSchedule is
+   * already updated by the set value.
+   */
+  virtual void modifyReferences(scalar_t initTime, scalar_t finalTime, const vector_t& initState, size_t initMode,
+                                TargetTrajectories& targetTrajectories, ModeSchedule& modeSchedule) {
+    (void)initMode;
+    modifyReferences(initTime, finalTime, initState, targetTrajectories, modeSchedule);
+  }
 
  private:
   BufferedValue<ModeSchedule> modeSchedule_;
