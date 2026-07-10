@@ -87,6 +87,34 @@ namespace ocs2 {
     }
 
     /**
+     * Compute the quaternion corresponding to the shortest-arc rotation from unit vector a to unit vector b.
+     *
+     * @note Undefined for anti-parallel vectors (a = -b), where the rotation axis is ambiguous.
+     *
+     * @param [in] a Unit vector of initial orientation
+     * @param [in] b Unit vector of final orientation
+     * @return The corresponding quaternion
+     */
+    template<typename SCALAR_T>
+    Eigen::Quaternion<SCALAR_T> getQuaternionFromUnitVectors(const Eigen::Matrix<SCALAR_T, 3, 1> &a,
+                                                             const Eigen::Matrix<SCALAR_T, 3, 1> &b) {
+        // q.vec() = a.cross(b);
+        SCALAR_T x = a[1] * b[2] - a[2] * b[1];
+        SCALAR_T y = a[2] * b[0] - a[0] * b[2];
+        SCALAR_T z = a[0] * b[1] - a[1] * b[0];
+        // q.w = sqrt(len(a)^2 * len(b)^2) + a.dot(b);
+        SCALAR_T w = 1 + a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+        const SCALAR_T norm = CppAD::sqrt(x * x + y * y + z * z + w * w);
+
+        x /= norm;
+        y /= norm;
+        z /= norm;
+        w /= norm;
+
+        return Eigen::Quaternion<SCALAR_T>(w, x, y, z);
+    }
+
+    /**
      * Compute the rotation matrix corresponding to euler angles zyx
      *
      * @param [in] eulerAnglesZyx
@@ -315,4 +343,42 @@ namespace ocs2 {
      * @return An angle (x + k*2*pi) with k such that the result is within [reference - pi, reference + pi].
      */
     scalar_t moduloAngleWithReference(scalar_t x, scalar_t reference);
+
+    /**
+     * Compute the quaternion distance measure to the closest orientation aligned with a reference plane.
+     *
+     * @param [in] q: measured end effector quaternion (world to end effector).
+     * @param [in] planeNormal: normal of the plane the end-effector z-axis should be aligned with, in world frame.
+     * @return A 3x1 vector representing the quaternion distance to the closest in-plane orientation.
+     */
+    template<typename SCALAR_T>
+    Eigen::Matrix<SCALAR_T, 3, 1> quaternionDistanceToPlane(const Eigen::Quaternion<SCALAR_T> &q,
+                                                            const Eigen::Matrix<SCALAR_T, 3, 1> &planeNormal) {
+        const Eigen::Matrix<SCALAR_T, 3, 1> z_axis(SCALAR_T(0.0), SCALAR_T(0.0), SCALAR_T(1.0));
+
+        // Passive rotation projecting from end effector frame to the closest frame in plane.
+        // Computed through the shortest arc rotation from the end effector z axis to the plane normal (both expressed in world frame).
+        const Eigen::Quaternion<SCALAR_T> quaternion_correction = getQuaternionFromUnitVectors<SCALAR_T>(q * z_axis, planeNormal);
+
+        return quaternionDistance<SCALAR_T>(quaternion_correction, Eigen::Quaternion<SCALAR_T>::Identity());
+    }
+
+    /**
+     * Compute the quaternion distance measure to the closest orientation aligned with a reference plane.
+     *
+     * @param [in] R: measured rotation matrix world to end effector.
+     * @param [in] planeNormal: normal of the plane the end-effector z-axis should be aligned with, in world frame.
+     * @return A 3x1 vector representing the quaternion distance to the closest in-plane orientation.
+     */
+    template<typename SCALAR_T>
+    Eigen::Matrix<SCALAR_T, 3, 1> rotationMatrixDistanceToPlane(const Eigen::Matrix<SCALAR_T, 3, 3> &R,
+                                                                const Eigen::Matrix<SCALAR_T, 3, 1> &planeNormal) {
+        const Eigen::Matrix<SCALAR_T, 3, 1> z_axis(SCALAR_T(0.0), SCALAR_T(0.0), SCALAR_T(1.0));
+
+        // Passive rotation projecting from end effector frame to the closest frame in plane.
+        // Computed through the shortest arc rotation from the end effector z axis to the plane normal (both expressed in world frame).
+        const Eigen::Quaternion<SCALAR_T> quaternion_correction = getQuaternionFromUnitVectors<SCALAR_T>(R * z_axis, planeNormal);
+
+        return quaternionDistance<SCALAR_T>(quaternion_correction, Eigen::Quaternion<SCALAR_T>::Identity());
+    }
 } // namespace ocs2

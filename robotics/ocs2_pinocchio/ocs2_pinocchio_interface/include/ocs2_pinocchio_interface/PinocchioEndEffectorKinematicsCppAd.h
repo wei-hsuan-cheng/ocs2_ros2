@@ -57,6 +57,8 @@ namespace ocs2
     public:
         using EndEffectorKinematics::vector3_t;
         using EndEffectorKinematics::matrix3x_t;
+        using EndEffectorKinematics::vector6_t;
+        using EndEffectorKinematics::matrix6x_t;
         using EndEffectorKinematics::quaternion_t;
         using update_pinocchio_interface_callback = std::function<void(
             const ad_vector_t& state,
@@ -116,9 +118,17 @@ namespace ocs2
         std::vector<vector3_t> getPosition(const vector_t& state) const override;
         std::vector<vector3_t> getVelocity(const vector_t& state,
                                            const vector_t& input) const override;
+        std::vector<quaternion_t> getOrientation(const vector_t& state) const override;
         std::vector<vector3_t> getOrientationError(
             const vector_t& state,
             const std::vector<quaternion_t>& referenceOrientations) const override;
+        std::vector<vector3_t> getOrientationErrorWrtPlane(
+            const vector_t& state,
+            const std::vector<vector3_t>& planeNormals) const override;
+        std::vector<vector3_t> getAngularVelocity(const vector_t& state,
+                                                  const vector_t& input) const override;
+        std::vector<vector6_t> getTwist(const vector_t& state,
+                                        const vector_t& input) const override;
 
         std::vector<VectorFunctionLinearApproximation> getPositionLinearApproximation(
             const vector_t& state) const override;
@@ -128,6 +138,15 @@ namespace ocs2
         getOrientationErrorLinearApproximation(
             const vector_t& state,
             const std::vector<quaternion_t>& referenceOrientations) const override;
+        std::vector<VectorFunctionLinearApproximation>
+        getOrientationErrorWrtPlaneLinearApproximation(
+            const vector_t& state,
+            const std::vector<vector3_t>& planeNormals) const override;
+        std::vector<VectorFunctionLinearApproximation>
+        getAngularVelocityLinearApproximation(
+            const vector_t& state, const vector_t& input) const override;
+        std::vector<VectorFunctionLinearApproximation> getTwistLinearApproximation(
+            const vector_t& state, const vector_t& input) const override;
 
     private:
         PinocchioEndEffectorKinematicsCppAd(
@@ -141,14 +160,34 @@ namespace ocs2
             PinocchioInterfaceCppAd& pinocchioInterfaceCppAd,
             const PinocchioStateInputMapping<ad_scalar_t>& mapping,
             const ad_vector_t& state, const ad_vector_t& input);
+        ad_vector_t getOrientationCppAd(
+            PinocchioInterfaceCppAd& pinocchioInterfaceCppAd,
+            const PinocchioStateInputMapping<ad_scalar_t>& mapping,
+            const ad_vector_t& state);
         ad_vector_t getOrientationErrorCppAd(
             PinocchioInterfaceCppAd& pinocchioInterfaceCppAd,
             const PinocchioStateInputMapping<ad_scalar_t>& mapping,
             const ad_vector_t& state, const ad_vector_t& params);
+        ad_vector_t getOrientationErrorWrtPlaneCppAd(
+            PinocchioInterfaceCppAd& pinocchioInterfaceCppAd,
+            const PinocchioStateInputMapping<ad_scalar_t>& mapping,
+            const ad_vector_t& state, const ad_vector_t& params);
+        ad_vector_t getAngularVelocityCppAd(
+            PinocchioInterfaceCppAd& pinocchioInterfaceCppAd,
+            const PinocchioStateInputMapping<ad_scalar_t>& mapping,
+            const ad_vector_t& state, const ad_vector_t& input);
+        ad_vector_t getTwistCppAd(
+            PinocchioInterfaceCppAd& pinocchioInterfaceCppAd,
+            const PinocchioStateInputMapping<ad_scalar_t>& mapping,
+            const ad_vector_t& state, const ad_vector_t& input);
 
         std::unique_ptr<CppAdInterface> positionCppAdInterfacePtr_;
         std::unique_ptr<CppAdInterface> velocityCppAdInterfacePtr_;
+        std::unique_ptr<CppAdInterface> orientationCppAdInterfacePtr_;
         std::unique_ptr<CppAdInterface> orientationErrorCppAdInterfacePtr_;
+        std::unique_ptr<CppAdInterface> orientationErrorWrtPlaneCppAdInterfacePtr_;
+        std::unique_ptr<CppAdInterface> angularVelocityCppAdInterfacePtr_;
+        std::unique_ptr<CppAdInterface> twistCppAdInterfacePtr_;
 
         const std::vector<std::string> endEffectorIds_;
         std::vector<size_t> endEffectorFrameIds_;
