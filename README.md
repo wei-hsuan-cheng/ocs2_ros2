@@ -76,14 +76,18 @@ Tested system and ROS 2 version:
   build, which is `4.0.0` now, so install `3.9.0` from the ROS snapshot archive and hold it)
     ```bash
     # Import the ROS snapshot archive key and add the 2026-03-29 humble snapshot
+    # (works on x86_64 and arm64; the arch is taken from dpkg)
     curl -s "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0xAD19BAB3CBF125EA" | \
-        sudo gpg --batch --yes --dearmor -o /usr/share/keyrings/ros-snapshots-archive-keyring.gpg
-    echo "deb [arch=amd64 signed-by=/usr/share/keyrings/ros-snapshots-archive-keyring.gpg] http://snapshots.ros.org/humble/2026-03-29/ubuntu jammy main" | \
-        sudo tee /etc/apt/sources.list.d/ros2-snapshots.list
+      sudo gpg --batch --yes --dearmor -o /usr/share/keyrings/ros-snapshots-archive-keyring.gpg
+    echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/ros-snapshots-archive-keyring.gpg] http://snapshots.ros.org/humble/2026-03-29/ubuntu jammy main" | \
+      sudo tee /etc/apt/sources.list.d/ros2-snapshots.list
     sudo apt update
 
-    # Install pinocchio 3.9.0 and pin it so a later apt upgrade does not pull 4.x
-    sudo apt install ros-humble-pinocchio=3.9.0-1jammy.20260304.203533
+    # Install pinocchio 3.9.0 from the snapshot and pin it so a later apt upgrade
+    # does not pull 4.x. The exact build id differs per architecture
+    # (amd64: ...20260304.203533, arm64: ...20260307.163259), so resolve it from apt:
+    PINOCCHIO_VERSION=$(apt-cache madison ros-humble-pinocchio | awk '/snapshots.ros.org/ {print $3; exit}')
+    sudo apt install ros-humble-pinocchio=${PINOCCHIO_VERSION}
     sudo apt-mark hold ros-humble-pinocchio
 
     # Drop the snapshot source again afterwards
