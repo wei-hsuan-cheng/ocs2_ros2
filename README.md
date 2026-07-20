@@ -63,7 +63,7 @@ Tested system and ROS 2 version:
     ```bash
     cd ~/ros2_ws/src
     git clone https://github.com/wei-hsuan-cheng/ocs2_ros2.git \
-        -b humble_frame_relation
+        -b humble
     ```
 
     Clone all sub-repo with vcs
