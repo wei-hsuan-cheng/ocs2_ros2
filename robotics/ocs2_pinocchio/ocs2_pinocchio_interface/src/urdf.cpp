@@ -38,10 +38,15 @@ namespace ocs2
 {
     PinocchioInterface getPinocchioInterfaceFromUrdfFile(const std::string& urdfFile)
     {
+        return getPinocchioInterfaceFromUrdfFile(urdfFile, false);
+    }
+
+    PinocchioInterface getPinocchioInterfaceFromUrdfFile(const std::string& urdfFile, bool useMimicJoints)
+    {
         urdf::ModelInterfaceSharedPtr urdfTree = urdf::parseURDFFile(urdfFile);
         if (urdfTree != nullptr)
         {
-            return getPinocchioInterfaceFromUrdfModel(urdfTree);
+            return getPinocchioInterfaceFromUrdfModel(urdfTree, useMimicJoints);
         }
         throw std::invalid_argument("The file " + urdfFile + " does not contain a valid URDF model.");
     }
@@ -49,20 +54,32 @@ namespace ocs2
     PinocchioInterface getPinocchioInterfaceFromUrdfFile(const std::string& urdfFile,
                                                          const PinocchioInterface::JointModel& rootJoint)
     {
+        return getPinocchioInterfaceFromUrdfFile(urdfFile, rootJoint, false);
+    }
+
+    PinocchioInterface getPinocchioInterfaceFromUrdfFile(const std::string& urdfFile,
+                                                         const PinocchioInterface::JointModel& rootJoint,
+                                                         bool useMimicJoints)
+    {
         urdf::ModelInterfaceSharedPtr urdfTree = urdf::parseURDFFile(urdfFile);
         if (urdfTree != nullptr)
         {
-            return getPinocchioInterfaceFromUrdfModel(urdfTree, rootJoint);
+            return getPinocchioInterfaceFromUrdfModel(urdfTree, rootJoint, useMimicJoints);
         }
         throw std::invalid_argument("The file " + urdfFile + " does not contain a valid URDF model.");
     }
 
     PinocchioInterface getPinocchioInterfaceFromUrdfString(const std::string& xmlString)
     {
+        return getPinocchioInterfaceFromUrdfString(xmlString, false);
+    }
+
+    PinocchioInterface getPinocchioInterfaceFromUrdfString(const std::string& xmlString, bool useMimicJoints)
+    {
         urdf::ModelInterfaceSharedPtr urdfTree = urdf::parseURDF(xmlString);
         if (urdfTree != nullptr)
         {
-            return getPinocchioInterfaceFromUrdfModel(urdfTree);
+            return getPinocchioInterfaceFromUrdfModel(urdfTree, useMimicJoints);
         }
         throw std::invalid_argument("The XML stream does not contain a valid URDF model.");
     }
@@ -70,26 +87,47 @@ namespace ocs2
     PinocchioInterface getPinocchioInterfaceFromUrdfString(const std::string& xmlString,
                                                            const PinocchioInterface::JointModel& rootJoint)
     {
+        return getPinocchioInterfaceFromUrdfString(xmlString, rootJoint, false);
+    }
+
+    PinocchioInterface getPinocchioInterfaceFromUrdfString(const std::string& xmlString,
+                                                           const PinocchioInterface::JointModel& rootJoint,
+                                                           bool useMimicJoints)
+    {
         urdf::ModelInterfaceSharedPtr urdfTree = urdf::parseURDF(xmlString);
         if (urdfTree != nullptr)
         {
-            return getPinocchioInterfaceFromUrdfModel(urdfTree, rootJoint);
+            return getPinocchioInterfaceFromUrdfModel(urdfTree, rootJoint, useMimicJoints);
         }
         throw std::invalid_argument("The XML stream does not contain a valid URDF model.");
     }
 
     PinocchioInterface getPinocchioInterfaceFromUrdfModel(const std::shared_ptr<urdf::ModelInterface>& urdfTree)
     {
+        return getPinocchioInterfaceFromUrdfModel(urdfTree, false);
+    }
+
+    PinocchioInterface getPinocchioInterfaceFromUrdfModel(
+        const std::shared_ptr<urdf::ModelInterface>& urdfTree, bool useMimicJoints)
+    {
         pinocchio::ModelTpl<scalar_t> model;
-        pinocchio::urdf::buildModel(urdfTree, model);
+        pinocchio::urdf::buildModel(urdfTree, model, false, useMimicJoints);
         return PinocchioInterface(model, urdfTree);
     }
 
     PinocchioInterface getPinocchioInterfaceFromUrdfModel(const std::shared_ptr<urdf::ModelInterface>& urdfTree,
                                                           const PinocchioInterface::JointModel& rootJoint)
     {
+        return getPinocchioInterfaceFromUrdfModel(urdfTree, rootJoint, false);
+    }
+
+    PinocchioInterface getPinocchioInterfaceFromUrdfModel(
+        const std::shared_ptr<urdf::ModelInterface>& urdfTree,
+        const PinocchioInterface::JointModel& rootJoint,
+        bool useMimicJoints)
+    {
         pinocchio::ModelTpl<scalar_t> model;
-        pinocchio::urdf::buildModel(urdfTree, rootJoint, model);
+        pinocchio::urdf::buildModel(urdfTree, rootJoint, model, false, useMimicJoints);
         return PinocchioInterface(model, urdfTree);
     }
 } // namespace ocs2

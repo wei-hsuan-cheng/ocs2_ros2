@@ -40,6 +40,12 @@ namespace ocs2
      */
     PinocchioInterface getPinocchioInterfaceFromUrdfFile(const std::string& urdfFile);
 
+    /** Factory function from URDF file with optional mimic-joint parsing
+     * @param [in] urdfFile: Path to the URDF file.
+     * @param [in] useMimicJoints: Parse URDF mimic joints as dependent Pinocchio joints.
+     */
+    PinocchioInterface getPinocchioInterfaceFromUrdfFile(const std::string& urdfFile, bool useMimicJoints);
+
     /** Factory function from URDF file with root joint
      * @param [in] urdfFile: Path to the URDF file.
      * @param [in] rootJoint: Root joint to which the robot is attached (eg. a 6 DOF base).
@@ -47,10 +53,25 @@ namespace ocs2
     PinocchioInterface getPinocchioInterfaceFromUrdfFile(const std::string& urdfFile,
                                                          const PinocchioInterface::JointModel& rootJoint);
 
+    /** Factory function from URDF file with root joint and optional mimic-joint parsing
+     * @param [in] urdfFile: Path to the URDF file.
+     * @param [in] rootJoint: Root joint to which the robot is attached (eg. a 6 DOF base).
+     * @param [in] useMimicJoints: Parse URDF mimic joints as dependent Pinocchio joints.
+     */
+    PinocchioInterface getPinocchioInterfaceFromUrdfFile(const std::string& urdfFile,
+                                                         const PinocchioInterface::JointModel& rootJoint,
+                                                         bool useMimicJoints);
+
     /** Factory function from URDF string
      * @param [in] xmlString: A URDF loaded as an std::string.
      */
     PinocchioInterface getPinocchioInterfaceFromUrdfString(const std::string& xmlString);
+
+    /** Factory function from URDF string with optional mimic-joint parsing
+     * @param [in] xmlString: A URDF loaded as an std::string.
+     * @param [in] useMimicJoints: Parse URDF mimic joints as dependent Pinocchio joints.
+     */
+    PinocchioInterface getPinocchioInterfaceFromUrdfString(const std::string& xmlString, bool useMimicJoints);
 
     /** Factory function from URDF string with root joint
      * @param [in] xmlString: A URDF loaded as an std::string.
@@ -59,10 +80,26 @@ namespace ocs2
     PinocchioInterface getPinocchioInterfaceFromUrdfString(const std::string& xmlString,
                                                            const PinocchioInterface::JointModel& rootJoint);
 
+    /** Factory function from URDF string with root joint and optional mimic-joint parsing
+     * @param [in] xmlString: A URDF loaded as an std::string.
+     * @param [in] rootJoint: Root joint to which the robot is attached (eg. a 6 DOF base).
+     * @param [in] useMimicJoints: Parse URDF mimic joints as dependent Pinocchio joints.
+     */
+    PinocchioInterface getPinocchioInterfaceFromUrdfString(const std::string& xmlString,
+                                                           const PinocchioInterface::JointModel& rootJoint,
+                                                           bool useMimicJoints);
+
     /** Factory function from URDF model tree
      * @param [in] urdfTree: Pointer to a URDF model tree.
      */
     PinocchioInterface getPinocchioInterfaceFromUrdfModel(const std::shared_ptr<::urdf::ModelInterface>& urdfTree);
+
+    /** Factory function from URDF model tree with optional mimic-joint parsing
+     * @param [in] urdfTree: Pointer to a URDF model tree.
+     * @param [in] useMimicJoints: Parse URDF mimic joints as dependent Pinocchio joints.
+     */
+    PinocchioInterface getPinocchioInterfaceFromUrdfModel(
+        const std::shared_ptr<::urdf::ModelInterface>& urdfTree, bool useMimicJoints);
 
     /** Factory function from URDF model tree with root joint
      * @param [in] urdfTree: Pointer to a URDF model tree.
@@ -70,4 +107,14 @@ namespace ocs2
      */
     PinocchioInterface getPinocchioInterfaceFromUrdfModel(const std::shared_ptr<::urdf::ModelInterface>& urdfTree,
                                                           const PinocchioInterface::JointModel& rootJoint);
+
+    /** Factory function from URDF model tree with root joint and optional mimic-joint parsing
+     * @param [in] urdfTree: Pointer to a URDF model tree.
+     * @param [in] rootJoint: Root joint to which the robot is attached (eg. a 6 DOF base).
+     * @param [in] useMimicJoints: Parse URDF mimic joints as dependent Pinocchio joints.
+     */
+    PinocchioInterface getPinocchioInterfaceFromUrdfModel(
+        const std::shared_ptr<::urdf::ModelInterface>& urdfTree,
+        const PinocchioInterface::JointModel& rootJoint,
+        bool useMimicJoints);
 } // namespace ocs2
