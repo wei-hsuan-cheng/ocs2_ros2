@@ -332,27 +332,3 @@ https://github.com/user-attachments/assets/aed3173f-a6e6-4499-ae8c-d101bedc5222
 https://github.com/user-attachments/assets/d29551b7-2ac7-428d-9605-f782193bcaf2
 
 </details>
-
-## 4. Advanced Examples
-
-[![](http://i1.hdslb.com/bfs/archive/a53bab50141165eb452aa0763a9a5b9a51a7ca67.jpg)](https://www.bilibili.com/video/BV1gSHLe3EEv/)
-
-### 4.1 [Perceptive Locomotion](advance%20examples/ocs2_perceptive_anymal/)
-
-![perceptive_side](.images/perception_side.png)
-
-![perceptive_hurdles](.images/perception_hurdles.png)
-
-### 4.2 [RaiSim Simulation](advance%20examples/ocs2_raisim/)
-
-![raisim](.images/raisim.png)
-
-![raisim_rviz](.images/raisim_rviz.png)
-
-### 4.3 [MPC-Net](advance%20examples/ocs2_mpcnet/)
-
-## 5. Related Projects
-
-* [`fiveages-sim/robot_descriptions`](https://github.com/fiveages-sim/robot_descriptions): More robot configs for OCS2_ROS2
-* [`fiveages-sim/arms_ros2_control`](https://github.com/fiveages-sim/arms_ros2_control): Mobile manipulator controller based on OCS2_ROS2
-* [`legubiao/quadruped_ros2_control`](https://github.com/legubiao/quadruped_ros2_control): Quadruped controller based on OCS2_ROS2
