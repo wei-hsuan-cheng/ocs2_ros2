@@ -239,9 +239,19 @@ namespace ocs2
             const scalar_t v_i = sparseJacobian[i];
             // Diagonal element always exists:
             gnApprox.dfdxx(static_cast<long>(col_i), static_cast<long>(col_i)) += v_i * v_i;
-            // Process off-diagonals
+            // Process off-diagonals.
+            //
+            // The bound on j is not optional: rows[] holds exactly nnzJacobian_
+            // entries, so for the last non-zero of the last row this loop starts
+            // at j == nnzJacobian_ and reads past the end. It then terminates
+            // only if the memory beyond the array happens to differ from row_i;
+            // when it does not, the loop keeps going and indexes dfdxx with
+            // whatever cols[] returns, which is an out-of-bounds write into the
+            // Hessian. Whether that is silent corruption or a segfault depends
+            // on the sparsity pattern and on the heap, so a cost term can work
+            // for years and then crash because an unrelated term changed shape.
             size_t j = i + 1;
-            while (rows[j] == row_i)
+            while (j < nnzJacobian_ && rows[j] == row_i)
             {
                 const size_t col_j = cols[j];
                 gnApprox.dfdxx(static_cast<long>(col_j), static_cast<long>(col_i)) += v_i * sparseJacobian[j];
