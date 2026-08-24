@@ -69,7 +69,7 @@ namespace ocs2
     {
         for (const auto& bodyName : endEffectorIds_)
         {
-            endEffectorFrameIds_.push_back(pinocchioInterface.getModel().getBodyId(bodyName));
+            endEffectorFrameIds_.push_back(pinocchioInterface.getModel().getFrameId(bodyName));
         }
 
         // initialize CppAD interface
