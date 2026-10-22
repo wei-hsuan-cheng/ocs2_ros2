@@ -71,7 +71,7 @@ namespace ocs2
             os << std::setw(20) << model.frames[k].name << ":  ";
             os << " ID = " << k;
             // os << ", parent = " << model.frames[k].parentJoint;
-            os << ", parent = " << model.frames[k].parent;
+            os << ", parent = " << model.frames[k].parentJoint;
             os << ", type = ";
 
             std::string frameType;
