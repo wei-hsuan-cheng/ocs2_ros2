@@ -28,6 +28,7 @@ OCS2_ROS2 is developed based on [OCS2](https://github.com/leggedrobotics/ocs2), 
     * Ubuntu 22.04 ROS 2 Humble (JetPack 6.1)
 * VM on MacBook Pro with M2 (arm64)
   * Ubuntu 22.04 ROS 2 Humble
+  * Ubuntu 24.04 ROS 2 Jazzy (the packages used by legged_robot_mpc_controller)
 
 ## 2. Installation
 
@@ -39,6 +40,13 @@ Tested system and ROS 2 version:
 
 * Ubuntu 24.04 ROS 2 Jazzy
 * Ubuntu 22.04 ROS 2 Humble
+
+This is the **Jazzy** branch; Humble is on the `humble` branch. It builds against the stock
+`ros-jazzy-pinocchio` (**4.x**, tested with 4.1.0), which replaced `hpp-fcl` with `coal`.
+Ported and tested so far: the core, MPC solvers, `ocs2_pinocchio_interface`,
+`ocs2_centroidal_model` and `ocs2_ros_interfaces`. `ocs2_self_collision` and
+`ocs2_sphere_approximation` use the `hpp::fcl` API and have not been ported or built on this
+branch yet.
 
 ### 2.2 Dependencies
 
@@ -63,7 +71,7 @@ Tested system and ROS 2 version:
     ```bash
     cd ~/ros2_ws/src
     git clone https://github.com/wei-hsuan-cheng/ocs2_ros2.git \
-        -b humble
+        -b jazzy
     ```
 
     Clone all sub-repo with vcs
@@ -72,38 +80,11 @@ Tested system and ROS 2 version:
     vcs import < ocs2_ros2.repos
     ```
 
-* Install `pinocchio` library (**3.9.x required**; `packages.ros.org` only serves the newest
-  build, which is `4.0.0` now, so install `3.9.0` from the ROS snapshot archive and hold it)
-    ```bash
-    # Import the ROS snapshot archive key and add the 2026-03-29 humble snapshot
-    # (works on x86_64 and arm64; the arch is taken from dpkg)
-    curl -s "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0xAD19BAB3CBF125EA" | \
-      sudo gpg --batch --yes --dearmor -o /usr/share/keyrings/ros-snapshots-archive-keyring.gpg
-    echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/ros-snapshots-archive-keyring.gpg] http://snapshots.ros.org/humble/2026-03-29/ubuntu jammy main" | \
-      sudo tee /etc/apt/sources.list.d/ros2-snapshots.list
-    sudo apt update
-
-    # Install pinocchio 3.9.0 from the snapshot and pin it so a later apt upgrade
-    # does not pull 4.x. The exact build id differs per architecture
-    # (amd64: ...20260304.203533, arm64: ...20260307.163259), so resolve it from apt:
-    PINOCCHIO_VERSION=$(apt-cache madison ros-humble-pinocchio | awk '/snapshots.ros.org/ {print $3; exit}')
-    sudo apt install ros-humble-pinocchio=${PINOCCHIO_VERSION}
-    sudo apt-mark hold ros-humble-pinocchio
-
-    # Drop the snapshot source again afterwards
-    sudo rm /etc/apt/sources.list.d/ros2-snapshots.list && sudo apt update
-
-    # Check the installed version and the hold:
-    # expect "Version: 3.9.0-..." and flag "hi" (h = held, i = installed)
-    dpkg -s ros-humble-pinocchio | grep Version
-    dpkg -l ros-humble-pinocchio | tail -1
-    ```
-
 * `rosdep`
     ```bash
     cd ~/ros2_ws
     rosdep update
-    rosdep install --from-paths src --ignore-src -r -y
+    rosdep install --from-paths src --ignore-src -r -y  # includes pinocchio 4.x and coal
     ```
 
 ## 3. Basic Examples
