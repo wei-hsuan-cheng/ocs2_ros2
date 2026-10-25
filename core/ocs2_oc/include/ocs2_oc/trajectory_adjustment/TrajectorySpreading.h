@@ -29,6 +29,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #pragma once
 
+#include <algorithm>
+
 #include <ocs2_core/Types.h>
 #include <ocs2_core/reference/ModeSchedule.h>
 
@@ -166,20 +168,19 @@ std::vector<T> TrajectorySpreading::extractEventsArray(const std::vector<T>& arr
 /******************************************************************************************************/
 template <typename T>
 void TrajectorySpreading::adjustTrajectory(std::vector<T>& trajectory) const {
-  // erase segment of trajectory associated to mismatched modes
-  trajectory.erase(trajectory.begin() + eraseFromIndex_, trajectory.end());
-
-  // extract spreading values beforehand since they might be overridden
+  // Sources may lie in the tail that will be truncated; preserve them before erasing.
   std::vector<T> spreadingValues(spreadingValueIndices_.size());
   std::transform(spreadingValueIndices_.begin(), spreadingValueIndices_.end(), spreadingValues.begin(),
                  [&](const size_t& ind) { return trajectory[ind]; });
 
   // spread
   for (size_t i = 0; i < spreadingValueIndices_.size(); i++) {
-    for (size_t j = beginIndices_[i]; j < endIndices_[i]; j++) {
+    for (size_t j = beginIndices_[i]; j < std::min(endIndices_[i], eraseFromIndex_); j++) {
       trajectory[j] = spreadingValues[i];
     }  // end of i loop
   }    // end of j loop
+
+  trajectory.erase(trajectory.begin() + eraseFromIndex_, trajectory.end());
 }
 
 }  // namespace ocs2
