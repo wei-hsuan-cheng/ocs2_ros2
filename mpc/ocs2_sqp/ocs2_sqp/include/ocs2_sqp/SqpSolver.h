@@ -29,6 +29,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #pragma once
 
+#include <functional>
+
 #include <ocs2_core/initialization/Initializer.h>
 #include <ocs2_core/integration/SensitivityIntegrator.h>
 #include <ocs2_core/misc/Benchmark.h>
@@ -62,6 +64,14 @@ namespace ocs2 {
         ~SqpSolver() override;
 
         void reset() override;
+
+        /** Re-express a cached trajectory when an application's state chart changes.
+         * Called on the solver thread before trajectory spreading/interpolation.
+         * Leave unset for the usual Euclidean-state behavior.
+         */
+        void setWarmStartTransform(std::function<void(const vector_t&, PrimalSolution&)> transform) {
+            warmStartTransform_ = std::move(transform);
+        }
 
         scalar_t getFinalTime() const override { return primalSolution_.timeTrajectory_.back(); };
 
@@ -174,6 +184,7 @@ namespace ocs2 {
 
         // Solution
         PrimalSolution primalSolution_;
+        std::function<void(const vector_t&, PrimalSolution&)> warmStartTransform_;
 
         // Value function in absolute state coordinates (without the constant value)
         std::vector<ScalarFunctionQuadraticApproximation> valueFunction_;

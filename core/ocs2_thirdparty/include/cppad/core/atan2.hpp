@@ -91,33 +91,27 @@ inline double atan2(double x, double y)
 // BEGIN CondExp
 template <class Base>
 AD<Base> atan2 (const AD<Base> &y, const AD<Base> &x)
-{   AD<Base> alpha;
-    AD<Base> beta;
-    AD<Base> theta;
-
+{
     AD<Base> zero(0.);
     AD<Base> pi2(2. * atan(1.));
     AD<Base> pi(2. * pi2);
 
-    AD<Base> ax = fabs(x);
-    AD<Base> ay = fabs(y);
-
-    // if( ax > ay )
-    //      theta = atan(ay / ax);
-    // else theta = pi2 - atan(ax / ay);
-    alpha = atan(ay / ax);
-    beta  = pi2 - atan(ax / ay);
-    theta = CondExpGt(ax, ay, alpha, beta);         // use of CondExp
-
-    // if( x <= 0 )
-    //     theta = pi - theta;
-    theta = CondExpLe(x, zero, pi - theta, theta);  // use of CondExp
-
-    // if( y <= 0 )
-    //     theta = - theta;
-    theta = CondExpLe(y, zero, -theta, theta);      // use of CondExp
-
-    return theta;
+    // Backport upstream CppAD's axis-derivative fix: fabs has zero derivative at zero.
+    // https://github.com/coin-or/CppAD/blob/master/include/cppad/core/atan2.hpp
+    AD<Base> abs_x = CondExpGe(x, zero, x, -x);
+    AD<Base> abs_y = CondExpGe(y, zero, y, -y);
+    // Code generation may evaluate both expressions before selecting one.
+    // Keep the unused denominator nonzero on the axes; the selected ratio is unchanged.
+    AD<Base> one(1.);
+    AD<Base> alpha = atan(abs_y / CondExpGt(abs_x, abs_y, abs_x, one));
+    AD<Base> beta = pi2 - atan(abs_x / CondExpGt(abs_x, abs_y, one, abs_y));
+    AD<Base> first = CondExpGt(abs_x, abs_y, alpha, beta);
+    AD<Base> second = pi - first;
+    AD<Base> third = -pi + first;
+    AD<Base> fourth = -first;
+    alpha = CondExpGe(y, zero, first, fourth);
+    beta = CondExpGe(y, zero, second, third);
+    return CondExpGe(x, zero, alpha, beta);
 }
 // END CondExp
 

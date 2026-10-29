@@ -204,6 +204,10 @@ namespace ocs2 {
             ocpDefinition.targetTrajectoriesPtr = &targetTrajectories;
         }
 
+        if (warmStartTransform_ && !primalSolution_.stateTrajectory_.empty()) {
+            warmStartTransform_(initState, primalSolution_);
+        }
+
         // Trajectory spread of primalSolution_
         if (!primalSolution_.timeTrajectory_.empty()) {
             std::ignore = trajectorySpread(primalSolution_.modeSchedule_, this->getReferenceManager().getModeSchedule(),
