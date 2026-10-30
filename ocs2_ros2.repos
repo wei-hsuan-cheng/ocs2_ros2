@@ -2,8 +2,8 @@ repositories:
     submodules/ocs2_robotic_assets:
       type: git
       url: https://github.com/wei-hsuan-cheng/ocs2_robotic_assets.git
-      version: ros2_x86
+      version: jazzy
     submodules/plane_segmentation_ros2:
       type: git
       url: https://github.com/wei-hsuan-cheng/plane_segmentation_ros2.git
-      version: main
+      version: jazzy
