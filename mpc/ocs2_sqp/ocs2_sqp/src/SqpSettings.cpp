@@ -57,6 +57,9 @@ namespace ocs2::sqp {
         loadData::loadPtreeValue(pt, settings.armijoFactor, fieldName + ".armijoFactor", verbose);
         loadData::loadPtreeValue(pt, settings.costTol, fieldName + ".costTol", verbose);
         loadData::loadPtreeValue(pt, settings.dt, fieldName + ".dt", verbose);
+        loadData::loadPtreeValue(pt, settings.dtMax, fieldName + ".dtMax", verbose);
+        loadData::loadPtreeValue(pt, settings.dtGrowth, fieldName + ".dtGrowth", verbose);
+        loadData::loadPtreeValue(pt, settings.dtFineHorizon, fieldName + ".dtFineHorizon", verbose);
         loadData::loadPtreeValue(pt, settings.useFeedbackPolicy, fieldName + ".useFeedbackPolicy", verbose);
         loadData::loadPtreeValue(pt, settings.createValueFunction, fieldName + ".createValueFunction", verbose);
         loadData::loadPtreeValue(pt, settings.enforceInequalityConstraints, fieldName + ".enforceInequalityConstraints", verbose);

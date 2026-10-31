@@ -29,6 +29,10 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "ocs2_oc/oc_data/TimeDiscretization.h"
 
+#include <algorithm>
+#include <cmath>
+#include <stdexcept>
+
 #include <ocs2_core/misc/Lookup.h>
 
 namespace ocs2 {
@@ -59,8 +63,18 @@ scalar_t getIntervalDuration(const AnnotatedTime& start, const AnnotatedTime& en
 
 std::vector<AnnotatedTime> timeDiscretizationWithEvents(scalar_t initTime, scalar_t finalTime, scalar_t dt,
                                                         const scalar_array_t& eventTimes, scalar_t dt_min) {
-  assert(dt > 0);
-  assert(finalTime > initTime);
+  return timeDiscretizationWithGeometricSteps(initTime, finalTime, dt, dt, 1.0, 0.0, eventTimes, dt_min);
+}
+
+std::vector<AnnotatedTime> timeDiscretizationWithGeometricSteps(
+    scalar_t initTime, scalar_t finalTime, scalar_t dt, scalar_t dtMax, scalar_t growth,
+    scalar_t fineHorizon, const scalar_array_t& eventTimes, scalar_t dt_min) {
+  if (!std::isfinite(initTime) || !std::isfinite(finalTime) || finalTime <= initTime ||
+      !std::isfinite(dt) || dt <= 0.0 || !std::isfinite(dtMax) || dtMax < dt ||
+      !std::isfinite(growth) || growth < 1.0 || !std::isfinite(fineHorizon) || fineHorizon < 0.0 ||
+      !std::isfinite(dt_min) || dt_min <= 0.0 || dt_min >= dt) {
+    throw std::invalid_argument("Invalid event-aligned time grid settings");
+  }
   std::vector<AnnotatedTime> timeDiscretization;
 
   // Initialize
@@ -69,8 +83,14 @@ std::vector<AnnotatedTime> timeDiscretizationWithEvents(scalar_t initTime, scala
 
   // Fill iteratively with pre event, post events are added later
   AnnotatedTime nextNode = timeDiscretization.back();
+  scalar_t step = dt;
+  const scalar_t fineEnd = initTime + fineHorizon;
   while (timeDiscretization.back().time < finalTime) {
-    nextNode.time = nextNode.time + dt;
+    const scalar_t start = nextNode.time;
+    nextNode.time = start + step;
+    if (start < fineEnd && nextNode.time > fineEnd) {
+      nextNode.time = fineEnd;
+    }
     nextNode.event = AnnotatedTime::Event::None;
 
     // Check if an event has passed
@@ -90,6 +110,10 @@ std::vector<AnnotatedTime> timeDiscretizationWithEvents(scalar_t initTime, scala
       timeDiscretization.push_back(nextNode);
     } else {  // Points are close together -> overwrite the old point
       timeDiscretization.back() = nextNode;
+    }
+    // Advance only after a real interval; pre/post-event duplicates are added below.
+    if (nextNode.time > start + dt_min && nextNode.time >= fineEnd - dt_min) {
+      step = std::min(dtMax, step * growth);
     }
   }
 

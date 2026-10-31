@@ -88,6 +88,11 @@ namespace ocs2::sqp {
         // Threading
         size_t nThreads = 4;
         int threadPriority = 50;
+
+        // Optional event-aligned geometric mesh; dtMax == 0 retains the uniform grid.
+        scalar_t dtMax = 0.0;
+        scalar_t dtGrowth = 1.0;
+        scalar_t dtFineHorizon = 0.0;
     };
 
     /**

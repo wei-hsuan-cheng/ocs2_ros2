@@ -76,6 +76,14 @@ std::vector<AnnotatedTime> timeDiscretizationWithEvents(scalar_t initTime, scala
                                                         const scalar_array_t& eventTimes,
                                                         scalar_t dt_min = 10.0 * numeric_traits::limitEpsilon<scalar_t>());
 
+/** Event-aligned geometric grid: retain dt through fineHorizon, then grow steps up to dtMax.
+ * Event-truncated intervals do not reset the growth schedule. All durations are in seconds.
+ */
+std::vector<AnnotatedTime> timeDiscretizationWithGeometricSteps(
+    scalar_t initTime, scalar_t finalTime, scalar_t dt, scalar_t dtMax, scalar_t growth,
+    scalar_t fineHorizon, const scalar_array_t& eventTimes,
+    scalar_t dt_min = 10.0 * numeric_traits::limitEpsilon<scalar_t>());
+
 /**
  * Extracts the time trajectory from the annotated time trajectory.
  *

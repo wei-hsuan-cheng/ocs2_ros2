@@ -33,6 +33,58 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 using namespace ocs2;
 
+TEST(test_time_discretization, geometricUniformMatchesLegacy) {
+  const scalar_array_t events{3.25, 3.4, 3.9};
+  const auto uniform = timeDiscretizationWithEvents(3.0, 4.0, 0.1, events);
+  const auto geometric = timeDiscretizationWithGeometricSteps(3.0, 4.0, 0.1, 0.1, 1.0, 0.0, events);
+  ASSERT_EQ(uniform.size(), geometric.size());
+  for (size_t k = 0; k < uniform.size(); ++k) {
+    EXPECT_EQ(uniform[k].time, geometric[k].time);
+    EXPECT_EQ(uniform[k].event, geometric[k].event);
+  }
+}
+
+TEST(test_time_discretization, geometricFineWindowAndBoundedTail) {
+  const auto grid = timeDiscretizationWithGeometricSteps(2.0, 3.0, 0.02, 0.06, 1.25, 0.2, {});
+  EXPECT_EQ(grid.front().time, 2.0);
+  EXPECT_EQ(grid.back().time, 3.0);
+  EXPECT_LT(grid.size(), 35);
+  bool coarse = false;
+  for (size_t k = 1; k < grid.size(); ++k) {
+    const auto dt = grid[k].time - grid[k - 1].time;
+    EXPECT_GT(dt, 0.0);
+    EXPECT_LE(dt, 0.06 + 1e-12);
+    if (grid[k - 1].time < 2.2 - 1e-12) EXPECT_LE(dt, 0.02 + 1e-12);
+    coarse = coarse || dt > 0.04;
+  }
+  EXPECT_TRUE(coarse);
+}
+
+TEST(test_time_discretization, geometricRetainsContactEvents) {
+  const scalar_array_t events{2.0, 2.195, 2.205, 2.41, 2.411, 2.79, 3.0, 3.2};
+  const auto grid = timeDiscretizationWithGeometricSteps(2.0, 3.0, 0.02, 0.06, 1.25, 0.2, events);
+  EXPECT_EQ(grid.front().event, AnnotatedTime::Event::PostEvent);
+  EXPECT_EQ(grid.back().time, 3.0);
+  for (const auto event : {2.195, 2.205, 2.41, 2.411, 2.79}) {
+    size_t pairs = 0;
+    for (size_t k = 1; k < grid.size(); ++k) {
+      if (grid[k - 1].time == event && grid[k].time == event) {
+        EXPECT_EQ(grid[k - 1].event, AnnotatedTime::Event::PreEvent);
+        EXPECT_EQ(grid[k].event, AnnotatedTime::Event::PostEvent);
+        ++pairs;
+      }
+    }
+    EXPECT_EQ(pairs, 1);
+  }
+}
+
+TEST(test_time_discretization, geometricRejectsInvalidParameters) {
+  EXPECT_THROW(timeDiscretizationWithGeometricSteps(0.0, 1.0, 0.02, 0.01, 1.2, 0.2, {}), std::invalid_argument);
+  EXPECT_THROW(timeDiscretizationWithGeometricSteps(0.0, 1.0, 0.02, 0.06, 0.9, 0.2, {}), std::invalid_argument);
+  EXPECT_THROW(timeDiscretizationWithGeometricSteps(0.0, 1.0, 0.02, 0.06, 1.2, -0.2, {}), std::invalid_argument);
+  EXPECT_THROW(timeDiscretizationWithGeometricSteps(0.0, 1.0, 0.0, 0.06, 1.2, 0.2, {}), std::invalid_argument);
+}
+
 TEST(test_time_discretization, noEvents_plusEps) {
   scalar_t initTime = 0.1;
   scalar_t finalTime = 0.3 + std::numeric_limits<scalar_t>::epsilon();

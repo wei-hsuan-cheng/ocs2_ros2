@@ -203,7 +203,10 @@ namespace ocs2 {
 
         // Determine time discretization, taking into account event times.
         const auto &eventTimes = this->getReferenceManager().getModeSchedule().eventTimes;
-        const auto timeDiscretization = timeDiscretizationWithEvents(initTime, finalTime, settings_.dt, eventTimes);
+        const auto timeDiscretization = settings_.dtMax > 0.0
+            ? timeDiscretizationWithGeometricSteps(initTime, finalTime, settings_.dt, settings_.dtMax,
+                                                  settings_.dtGrowth, settings_.dtFineHorizon, eventTimes)
+            : timeDiscretizationWithEvents(initTime, finalTime, settings_.dt, eventTimes);
 
         // Initialize references
         for (auto &ocpDefinition: ocpDefinitions_) {
