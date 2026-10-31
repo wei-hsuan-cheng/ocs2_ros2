@@ -85,6 +85,36 @@ TEST(test_time_discretization, geometricRejectsInvalidParameters) {
   EXPECT_THROW(timeDiscretizationWithGeometricSteps(0.0, 1.0, 0.0, 0.06, 1.2, 0.2, {}), std::invalid_argument);
 }
 
+TEST(test_time_discretization, geometricRetainsEventsNearFineBoundary) {
+  const scalar_t dtMin = 10.0 * numeric_traits::limitEpsilon<scalar_t>();
+  for (const scalar_t initTime : {0.0, 2.0, 1e6}) {
+    for (const scalar_t offset : {-2.0, -1.0, -0.5, 0.0, 0.5, 1.0, 2.0}) {
+      SCOPED_TRACE(::testing::Message() << "initTime=" << initTime << ", offset/dtMin=" << offset);
+      const scalar_t fineEnd = initTime + 0.2;
+      const scalar_t event = fineEnd + offset * dtMin;
+      const auto grid = timeDiscretizationWithGeometricSteps(initTime, initTime + 1.0, 0.02, 0.035, 1.4, 0.2, {event});
+      EXPECT_EQ(grid.front().time, initTime);
+      EXPECT_EQ(grid.back().time, initTime + 1.0);
+      size_t pairs = 0;
+      for (size_t k = 1; k < grid.size(); ++k) {
+        if (grid[k - 1].event == AnnotatedTime::Event::PreEvent) {
+          EXPECT_EQ(grid[k - 1].time, event);
+          EXPECT_EQ(grid[k].time, event);
+          EXPECT_EQ(grid[k].event, AnnotatedTime::Event::PostEvent);
+          ++pairs;
+        } else {
+          EXPECT_GT(getIntervalDuration(grid[k - 1], grid[k]), 0.0);
+          EXPECT_LE(grid[k].time - grid[k - 1].time, 0.035 + dtMin + 1e-9);
+          if (grid[k - 1].time < fineEnd - dtMin) {
+            EXPECT_LE(grid[k].time - grid[k - 1].time, 0.02 + dtMin + 1e-9);
+          }
+        }
+      }
+      EXPECT_EQ(pairs, 1);
+    }
+  }
+}
+
 TEST(test_time_discretization, noEvents_plusEps) {
   scalar_t initTime = 0.1;
   scalar_t finalTime = 0.3 + std::numeric_limits<scalar_t>::epsilon();

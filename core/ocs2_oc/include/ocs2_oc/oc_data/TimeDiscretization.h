@@ -78,6 +78,7 @@ std::vector<AnnotatedTime> timeDiscretizationWithEvents(scalar_t initTime, scala
 
 /** Event-aligned geometric grid: retain dt through fineHorizon, then grow steps up to dtMax.
  * Event-truncated intervals do not reset the growth schedule. All durations are in seconds.
+ * The artificial fine-window boundary is omitted when within dt_min of the preceding node.
  */
 std::vector<AnnotatedTime> timeDiscretizationWithGeometricSteps(
     scalar_t initTime, scalar_t finalTime, scalar_t dt, scalar_t dtMax, scalar_t growth,

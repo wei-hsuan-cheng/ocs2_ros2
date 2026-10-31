@@ -88,7 +88,8 @@ std::vector<AnnotatedTime> timeDiscretizationWithGeometricSteps(
   while (timeDiscretization.back().time < finalTime) {
     const scalar_t start = nextNode.time;
     nextNode.time = start + step;
-    if (start < fineEnd && nextNode.time > fineEnd) {
+    // Do not let an artificial fine-boundary node overwrite a nearby contact event.
+    if (start + dt_min < fineEnd && nextNode.time > fineEnd) {
       nextNode.time = fineEnd;
     }
     nextNode.event = AnnotatedTime::Event::None;
