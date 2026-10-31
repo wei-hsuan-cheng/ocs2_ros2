@@ -46,6 +46,13 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 namespace ocs2 {
     namespace {
         sqp::Settings rectifySettings(const OptimalControlProblem &ocp, sqp::Settings &&settings) {
+            if (settings.enforceInequalityConstraints && !ocp.equalityConstraintPtr->empty() &&
+                !settings.projectStateInputEqualityConstraints) {
+                throw std::invalid_argument("[SqpSolver] hard inequalities require state-input equality projection");
+            }
+            if (settings.enforceInequalityConstraints && !ocp.stateEqualityConstraintPtr->empty()) {
+                throw std::invalid_argument("[SqpSolver] hard inequalities do not support state-only equalities");
+            }
             // True does not make sense if there are no constraints.
             if (ocp.equalityConstraintPtr->empty()) {
                 settings.projectStateInputEqualityConstraints = false;
@@ -263,7 +270,7 @@ namespace ocs2 {
                 logEntry.linesearchTime = linesearchTimer_.getLastIntervalInMilliseconds();
                 logEntry.baselinePerformanceIndex = baselinePerformance;
                 logEntry.totalConstraintViolationBaseline = FilterLinesearch::totalConstraintViolation(
-                    baselinePerformance);
+                    baselinePerformance, settings_.enforceInequalityConstraints);
                 logEntry.stepInfo = stepInfo;
                 logEntry.convergence = convergence;
                 logger_.advance();
@@ -300,7 +307,32 @@ namespace ocs2 {
         auto &deltaUSol = solution.deltaUSol;
         hpipm_status status;
         const bool hasStateInputConstraints = !ocpDefinitions_.front().equalityConstraintPtr->empty();
-        if (hasStateInputConstraints && !settings_.projectStateInputEqualityConstraints) {
+        if (settings_.enforceInequalityConstraints) {
+            auto size = extractSizesFromProblem(dynamics_, cost_, nullptr);
+            std::vector<VectorFunctionLinearApproximation> inequalities(cost_.size());
+            for (size_t k = 0; k < cost_.size(); ++k) {
+                const auto& state = stateIneqConstraints_[k];
+                const Eigen::Index ns = state.f.size();
+                const Eigen::Index ni = k < stateInputIneqConstraints_.size() ? stateInputIneqConstraints_[k].f.size() : 0;
+                const Eigen::Index nx = cost_[k].dfdx.size(), nu = k < dynamics_.size() ? cost_[k].dfdu.size() : 0;
+                auto& all = inequalities[k];
+                all = VectorFunctionLinearApproximation::Zero(ns + ni, nx, nu);
+                if (ns) {
+                    all.f.head(ns) = state.f;
+                    all.dfdx.topRows(ns) = state.dfdx;
+                }
+                if (ni) {
+                    const auto& input = stateInputIneqConstraints_[k];
+                    all.f.tail(ni) = input.f;
+                    all.dfdx.bottomRows(ni) = input.dfdx;
+                    all.dfdu.bottomRows(ni) = input.dfdu;
+                }
+                size.numIneqConstraints[k] += ns + ni;
+            }
+            hpipmInterface_.resize(std::move(size));
+            status = hpipmInterface_.solveWithInequalities(delta_x0, dynamics_, cost_, inequalities,
+                                                          deltaXSol, deltaUSol, settings_.printSolverStatus);
+        } else if (hasStateInputConstraints && !settings_.projectStateInputEqualityConstraints) {
             hpipmInterface_.resize(extractSizesFromProblem(dynamics_, cost_, &stateInputEqConstraints_));
             status =
                     hpipmInterface_.solve(delta_x0, dynamics_, cost_, &stateInputEqConstraints_, deltaXSol, deltaUSol,
@@ -515,7 +547,7 @@ namespace ocs2 {
         }
 
         // Baseline costs
-        const scalar_t baselineConstraintViolation = FilterLinesearch::totalConstraintViolation(baseline);
+        const scalar_t baselineConstraintViolation = FilterLinesearch::totalConstraintViolation(baseline, settings_.enforceInequalityConstraints);
 
         // Update norm
         const auto &dx = subproblemSolution.deltaXSol;
@@ -541,7 +573,7 @@ namespace ocs2 {
             StepType stepType;
             std::tie(stepAccepted, stepType) =
                     filterLinesearch_.acceptStep(baseline, performanceNew,
-                                                 alpha * subproblemSolution.armijoDescentMetric);
+                                                 alpha * subproblemSolution.armijoDescentMetric, settings_.enforceInequalityConstraints);
 
             if (settings_.printLinesearch) {
                 std::cerr << "Step size: " << alpha << ", Step Type: " << toString(stepType)
@@ -563,7 +595,7 @@ namespace ocs2 {
                 stepInfo.dx_norm = alpha * deltaXnorm;
                 stepInfo.du_norm = alpha * deltaUnorm;
                 stepInfo.performanceAfterStep = performanceNew;
-                stepInfo.totalConstraintViolationAfterStep = FilterLinesearch::totalConstraintViolation(performanceNew);
+                stepInfo.totalConstraintViolationAfterStep = FilterLinesearch::totalConstraintViolation(performanceNew, settings_.enforceInequalityConstraints);
                 return stepInfo;
             } else {
                 // Try smaller step
@@ -589,7 +621,7 @@ namespace ocs2 {
         stepInfo.dx_norm = 0.0;
         stepInfo.du_norm = 0.0;
         stepInfo.performanceAfterStep = baseline;
-        stepInfo.totalConstraintViolationAfterStep = FilterLinesearch::totalConstraintViolation(baseline);
+        stepInfo.totalConstraintViolationAfterStep = FilterLinesearch::totalConstraintViolation(baseline, settings_.enforceInequalityConstraints);
 
         if (settings_.printLinesearch) {
             std::cerr << "[Linesearch terminated] Step size: " << stepInfo.stepSize << ", Step Type: " << toString(
@@ -609,7 +641,7 @@ namespace ocs2 {
             // Converged because step size is below the specified minimum
             return Convergence::STEPSIZE;
         } else if (std::abs(stepInfo.performanceAfterStep.merit - baseline.merit) < settings_.costTol &&
-                   FilterLinesearch::totalConstraintViolation(stepInfo.performanceAfterStep) < settings_.g_min) {
+                   FilterLinesearch::totalConstraintViolation(stepInfo.performanceAfterStep, settings_.enforceInequalityConstraints) < settings_.g_min) {
             // Converged because the change in merit is below the specified tolerance while the constraint violation is below the minimum
             return Convergence::METRICS;
         } else if (stepInfo.dx_norm < settings_.deltaTol && stepInfo.du_norm < settings_.deltaTol) {

@@ -165,9 +165,13 @@ class HpipmInterface::Impl {
 
   hpipm_status solve(const vector_t& x0, std::vector<VectorFunctionLinearApproximation>& dynamics,
                      std::vector<ScalarFunctionQuadraticApproximation>& cost, std::vector<VectorFunctionLinearApproximation>* constraints,
-                     vector_array_t& stateTrajectory, vector_array_t& inputTrajectory, bool verbose) {
+                     vector_array_t& stateTrajectory, vector_array_t& inputTrajectory, bool verbose,
+                     std::vector<VectorFunctionLinearApproximation>* inequalities = nullptr) {
     const int N = ocpSize_.numStages;
     verifySizes(x0, dynamics, cost, constraints);
+    if (inequalities && inequalities->size() != static_cast<size_t>(N + 1)) {
+      throw std::invalid_argument("[HpipmInterface] inequalities must have N+1 nodes");
+    }
 
     // === Dynamics ===
     std::vector<scalar_t*> AA(N, nullptr);
@@ -228,8 +232,31 @@ class HpipmInterface::Impl {
     std::vector<scalar_t*> llg(N + 1, nullptr);
     std::vector<scalar_t*> uug(N + 1, nullptr);
     std::vector<ocs2::vector_t> boundData;  // Declare at this scope to keep the data alive while HPIPM has the pointers
+    std::vector<vector_t> upperData(N + 1), upperMask(N + 1), lowerMask(N + 1);
+    for (int k = 0; k <= N; ++k) {
+      upperMask[k] = vector_t::Ones(ocpSize_.numIneqConstraints[k]);
+      lowerMask[k] = upperMask[k];
+    }
 
-    if (constraints != nullptr) {
+    if (inequalities != nullptr) {
+      boundData.resize(N + 1);
+      for (int k = 0; k <= N; ++k) {
+        auto& ineq = (*inequalities)[k];
+        const Eigen::Index ni = ineq.f.size();
+        if (ni != ocpSize_.numIneqConstraints[k]) {
+          throw std::invalid_argument("[HpipmInterface] inconsistent general-constraint row count");
+        }
+        upperMask[k].setZero();
+        if (ni == 0) continue;
+        boundData[k] = -ineq.f;
+        if (k == 0) boundData[k].noalias() -= ineq.dfdx * x0;
+        upperData[k] = boundData[k];
+        llg[k] = boundData[k].data();
+        uug[k] = upperData[k].data();
+        if (k > 0) CC[k] = ineq.dfdx.data();
+        if (k < N) DD[k] = ineq.dfdu.data();
+      }
+    } else if (constraints != nullptr) {
       auto& constr = *constraints;
       boundData.resize(N + 1);
 
@@ -281,6 +308,13 @@ class HpipmInterface::Impl {
     // === Set and solve ===
     d_ocp_qp_set_all(AA.data(), BB.data(), bb.data(), QQ.data(), SS.data(), RR.data(), qq.data(), rr.data(), hidxbx, hlbx, hubx, hidxbu,
                      hlbu, hubu, CC.data(), DD.data(), llg.data(), uug.data(), hZl, hZu, hzl, hzu, hidxs, hlls, hlus, &qp_);
+    // Reset masks on every call, including after a previous inequality solve.
+    for (int k = 0; k <= N; ++k) {
+      if (upperMask[k].size()) {
+        d_ocp_qp_set_lg_mask(k, lowerMask[k].data(), &qp_);
+        d_ocp_qp_set_ug_mask(k, upperMask[k].data(), &qp_);
+      }
+    }
     d_ocp_qp_ipm_solve(&qp_, &qpSol_, &arg_, &workspace_);
 
     if (verbose) {
@@ -527,9 +561,17 @@ HpipmInterface::HpipmInterface(OcpSize ocpSize, const Settings& settings)
 
 HpipmInterface::~HpipmInterface() = default;
 
+hpipm_status HpipmInterface::solveWithInequalities(const vector_t& x0,
+    std::vector<VectorFunctionLinearApproximation>& dynamics, std::vector<ScalarFunctionQuadraticApproximation>& cost,
+    std::vector<VectorFunctionLinearApproximation>& inequalities,
+    vector_array_t& stateTrajectory, vector_array_t& inputTrajectory, bool verbose) {
+  return pImpl_->solve(x0, dynamics, cost, nullptr, stateTrajectory, inputTrajectory, verbose, &inequalities);
+}
+
 void HpipmInterface::resize(OcpSize ocpSize) {
   pImpl_->initializeMemory(std::move(ocpSize));
 }
+
 
 hpipm_status HpipmInterface::solve(const vector_t& x0, std::vector<VectorFunctionLinearApproximation>& dynamics,
                                    std::vector<ScalarFunctionQuadraticApproximation>& cost,

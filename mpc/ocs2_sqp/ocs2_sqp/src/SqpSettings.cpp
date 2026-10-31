@@ -59,6 +59,7 @@ namespace ocs2::sqp {
         loadData::loadPtreeValue(pt, settings.dt, fieldName + ".dt", verbose);
         loadData::loadPtreeValue(pt, settings.useFeedbackPolicy, fieldName + ".useFeedbackPolicy", verbose);
         loadData::loadPtreeValue(pt, settings.createValueFunction, fieldName + ".createValueFunction", verbose);
+        loadData::loadPtreeValue(pt, settings.enforceInequalityConstraints, fieldName + ".enforceInequalityConstraints", verbose);
         auto integratorName = sensitivity_integrator::toString(settings.integratorType);
         loadData::loadPtreeValue(pt, integratorName, fieldName + ".integratorType", verbose);
         settings.integratorType = sensitivity_integrator::fromString(integratorName);

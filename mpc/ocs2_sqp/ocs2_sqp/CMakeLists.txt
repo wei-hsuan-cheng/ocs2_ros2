@@ -77,6 +77,9 @@ if (BUILD_TESTING)
     target_link_libraries(test_${PROJECT_NAME}
             ${PROJECT_NAME}
     )
+    ament_add_gtest(test_sqp_inequalities test/testInequalities.cpp)
+    ament_target_dependencies(test_sqp_inequalities ${dependencies})
+    target_link_libraries(test_sqp_inequalities ${PROJECT_NAME})
 
 endif ()
 

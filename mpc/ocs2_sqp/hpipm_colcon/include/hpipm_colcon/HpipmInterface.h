@@ -86,6 +86,15 @@ class HpipmInterface {
                      std::vector<ScalarFunctionQuadraticApproximation>& cost, std::vector<VectorFunctionLinearApproximation>* constraints,
                      vector_array_t& stateTrajectory, vector_array_t& inputTrajectory, bool verbose = false);
 
+  /** Solve with one-sided inequalities f + C*dx + D*du >= 0, after equality projection.
+   *  The constraint array has N+1 entries (terminal inputs are empty).
+   *  The inequalities use HPIPM's general bounds with the upper-bound mask disabled.
+   */
+  hpipm_status solveWithInequalities(const vector_t& x0, std::vector<VectorFunctionLinearApproximation>& dynamics,
+                     std::vector<ScalarFunctionQuadraticApproximation>& cost,
+                     std::vector<VectorFunctionLinearApproximation>& inequalities,
+                     vector_array_t& stateTrajectory, vector_array_t& inputTrajectory, bool verbose = false);
+
   /**
    * Return the Riccati cost-to-go for the previously solved problem.
    * Extra information about the initial stage is needed to complete calculation.

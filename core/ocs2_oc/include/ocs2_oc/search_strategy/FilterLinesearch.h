@@ -58,10 +58,16 @@ struct FilterLinesearch {
    */
   std::pair<bool, StepType> acceptStep(const PerformanceIndex& baselinePerformance, const PerformanceIndex& stepPerformance,
                                        scalar_t armijoDescentMetric) const;
+  std::pair<bool, StepType> acceptStep(const PerformanceIndex& baselinePerformance, const PerformanceIndex& stepPerformance,
+                                       scalar_t armijoDescentMetric, bool includeInequalities) const;
 
   /** Compute total constraint violation */
   static scalar_t totalConstraintViolation(const PerformanceIndex& performance) {
-    return std::sqrt(performance.dynamicsViolationSSE + performance.equalityConstraintsSSE);
+    return totalConstraintViolation(performance, false);
+  }
+  static scalar_t totalConstraintViolation(const PerformanceIndex& performance, bool includeInequalities) {
+    return std::sqrt(performance.dynamicsViolationSSE + performance.equalityConstraintsSSE +
+                     (includeInequalities ? performance.inequalityConstraintsSSE : 0.0));
   }
 };
 

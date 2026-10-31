@@ -34,8 +34,14 @@ namespace ocs2 {
         const PerformanceIndex &baselinePerformance,
         const PerformanceIndex &stepPerformance,
         scalar_t armijoDescentMetric) const {
-        const scalar_t baselineConstraintViolation = totalConstraintViolation(baselinePerformance);
-        const scalar_t stepConstraintViolation = totalConstraintViolation(stepPerformance);
+        return acceptStep(baselinePerformance, stepPerformance, armijoDescentMetric, false);
+    }
+
+    std::pair<bool, FilterLinesearch::StepType> FilterLinesearch::acceptStep(
+        const PerformanceIndex &baselinePerformance, const PerformanceIndex &stepPerformance,
+        scalar_t armijoDescentMetric, bool includeInequalities) const {
+        const scalar_t baselineConstraintViolation = totalConstraintViolation(baselinePerformance, includeInequalities);
+        const scalar_t stepConstraintViolation = totalConstraintViolation(stepPerformance, includeInequalities);
 
         // Step acceptance and record step type
         if (stepConstraintViolation > g_max) {

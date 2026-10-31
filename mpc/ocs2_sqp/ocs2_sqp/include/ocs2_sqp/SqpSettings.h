@@ -56,6 +56,8 @@ namespace ocs2::sqp {
         // controller type
         bool useFeedbackPolicy = true; // true to use feedback, false to use feedforward
         bool createValueFunction = false; // true to store the value function, false to ignore it
+        // Opt in to HPIPM one-sided general bounds; legacy SQP leaves inequalities unenforced.
+        bool enforceInequalityConstraints = false;
 
         // QP subproblem solver settings
         hpipm_interface::Settings hpipmSettings = hpipm_interface::Settings();
