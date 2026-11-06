@@ -34,7 +34,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace ocs2
 {
-    SphereApproximation::SphereApproximation(const hpp::fcl::CollisionGeometry& geometry, size_t geomObjId,
+    SphereApproximation::SphereApproximation(const coal::CollisionGeometry& geometry, size_t geomObjId,
                                              scalar_t maxExcess,
                                              scalar_t shrinkRatio)
         : geomObjId_(geomObjId), maxExcess_(maxExcess), shrinkRatio_(shrinkRatio)
@@ -47,21 +47,21 @@ namespace ocs2
         const auto& nodeType = geometry.getNodeType();
         switch (nodeType)
         {
-        case hpp::fcl::NODE_TYPE::GEOM_BOX:
+        case coal::NODE_TYPE::GEOM_BOX:
             {
-                const auto* boxPtr = dynamic_cast<const hpp::fcl::Box*>(&geometry);
+                const auto* boxPtr = dynamic_cast<const coal::Box*>(&geometry);
                 approximateBox(boxPtr->halfSide * 2);
                 break;
             }
-        case hpp::fcl::NODE_TYPE::GEOM_CYLINDER:
+        case coal::NODE_TYPE::GEOM_CYLINDER:
             {
-                const auto* cylinderPtr = dynamic_cast<const hpp::fcl::Cylinder*>(&geometry);
+                const auto* cylinderPtr = dynamic_cast<const coal::Cylinder*>(&geometry);
                 approximateCylinder(cylinderPtr->radius, cylinderPtr->halfLength * 2);
                 break;
             }
-        case hpp::fcl::NODE_TYPE::GEOM_SPHERE:
+        case coal::NODE_TYPE::GEOM_SPHERE:
             {
-                const auto* spherePtr = dynamic_cast<const hpp::fcl::Sphere*>(&geometry);
+                const auto* spherePtr = dynamic_cast<const coal::Sphere*>(&geometry);
                 numSpheres_ = 1;
                 sphereRadius_ = spherePtr->radius;
                 sphereCentersToObjectCenter_.resize(1);
