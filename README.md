@@ -45,8 +45,8 @@ This is the **Jazzy** branch; Humble is on the `humble` branch. It builds agains
 `ros-jazzy-pinocchio` (**4.x**, tested with 4.1.0), which replaced `hpp-fcl` with `coal`.
 Ported and tested so far: the core, MPC solvers, `ocs2_pinocchio_interface`,
 `ocs2_centroidal_model` and `ocs2_ros_interfaces`. `ocs2_self_collision` and
-`ocs2_sphere_approximation` use the `hpp::fcl` API and have not been ported or built on this
-branch yet.
+`ocs2_sphere_approximation` have been ported from `hpp::fcl` to the `coal` API and build on
+this branch.
 
 ### 2.2 Dependencies
 
